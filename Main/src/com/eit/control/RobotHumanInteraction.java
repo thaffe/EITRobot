@@ -13,9 +13,9 @@ import java.util.Locale;
  * Created by Lysaker on 05.03.14.
  */
 public class RobotHumanInteraction implements Runnable {
-    private static final boolean LIGHT_NOTIFICATION = false;
+    private static final boolean LIGHT_NOTIFICATION = true;
     private static final float FLASH_THRESHOLD = 30;
-    private static final boolean USE_LIGHT = false;
+    private static final boolean USE_LIGHT = true;
 
     private TextToSpeech speech;
     private boolean speechInitiated = false;
