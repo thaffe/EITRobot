@@ -178,14 +178,14 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
             Imgproc.cvtColor(rgb,rgb,Imgproc.COLOR_RGB2HSV);
         }
         switch (currentView){
-            case 0: return rgb;break;
-            case 1: return getInRange(rgb, colorRanges[0]);break;
-            case 3: return getInRange(rgb, colorRanges[1]);break;
+            case 0: return rgb;
+            case 1: return getInRange(rgb, colorRanges[0]);
+            case 3: return getInRange(rgb, colorRanges[1]);
         }
 
         if(currentView == 0) return rgb;
 
-
+        return rgb;
     }
 
     private void printBalls(Mat img) {
