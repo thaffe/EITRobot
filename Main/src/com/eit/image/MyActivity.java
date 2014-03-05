@@ -6,16 +6,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.eit.bluetooth.BluetoothCommunicator;
 import com.eit.bluetooth.NXTTalker;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.core.Mat;
 
 import java.util.ArrayList;
 

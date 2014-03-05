@@ -1,32 +1,36 @@
-package com.example.image;
+package com.eit.control;
 
-import android.speech.tts.TextToSpeech;
 import com.eit.bluetooth.BluetoothCommunication;
 import com.eit.image.Ball;
-import com.eit.image.BehaviorState;
 import com.eit.image.CollectionBox;
-import com.eit.image.EyeCommunication;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class StateManager {
-    private static final int ROTATION_STEP = 15;
+    private static final boolean SKIP_BOX = true;
+    private static final double ROTATION_STEP = -1.5;
     private static final int MOVE_STEP = 2;
     private static final int UNDOCK_BACK_STEP = 20;
 
     private final BluetoothCommunication control;
     private final EyeCommunication eye;
-    private final TextToSpeech speech;
+    private final RobotHumanInteraction humanInteraction;
 
     private BehaviorState state;
     private int ballTypeContained;
     private boolean init = true;
     private boolean naiveBoxRun = false;
+    private Random rnd = new Random(7373);
 
-    public StateManager(BluetoothCommunication control, EyeCommunication eye, TextToSpeech speech) {
+    private int randomRotationStepsTotal;
+    private int randomRotationStepsDone;
+
+    public StateManager(BluetoothCommunication control, EyeCommunication eye,
+                        RobotHumanInteraction humanInteraction) {
         this.control = control;
         this.eye = eye;
-        this.speech = speech;
+        this.humanInteraction = humanInteraction;
         this.state = BehaviorState.LOCATE_BALL;
     }
 
@@ -46,7 +50,14 @@ public class StateManager {
             reachBall();
         } else if (state == BehaviorState.PICK_UP) {
             control.closeClaw();
-            state = BehaviorState.LOCATE_BOX;
+            if (SKIP_BOX) {
+                state = BehaviorState.LOCATE_BALL;
+                control.openClaw();
+                control.move(-MOVE_STEP*2);
+                control.rotate(2);
+            } else {
+                state = BehaviorState.LOCATE_BOX;
+            }
         } else if (state == BehaviorState.LOCATE_BOX) {
             locateBox();
         } else if (state == BehaviorState.DOCK) {
@@ -61,16 +72,37 @@ public class StateManager {
         }
     }
 
+    public StateRequirement requires() {
+        if (state == BehaviorState.LOCATE_BALL || state == BehaviorState.REACH_BALL) {
+            return StateRequirement.BALL;
+        } else if (state == BehaviorState.LOCATE_BOX || state == BehaviorState.DOCK) {
+            return StateRequirement.COLLECTION_BOX;
+        } else {
+            return StateRequirement.NONE;
+        }
+    }
+
     private void locateBall() {
         if (init)  {
             speak("Locating balls");
             init = false;
+            randomRotationStepsTotal = rnd.nextInt(5) + 2;
+            randomRotationStepsDone = 0;
         }
 
         Ball ball = closestBallOrDefault();
 
         if (ball == null) {
-            control.rotate(ROTATION_STEP);
+            if (randomRotationStepsDone < randomRotationStepsTotal) {
+                control.rotate(ROTATION_STEP);
+                randomRotationStepsDone++;
+            }
+            else {
+                // TODO: Walk randomly around, or use map
+                control.move(MOVE_STEP);
+                randomRotationStepsDone = 0;
+            }
+
         }  else {
             speak("Ball found");
             state = BehaviorState.REACH_BALL;
@@ -126,7 +158,7 @@ public class StateManager {
     }
 
     private CollectionBox getBoxOrDefault(int type) {
-        ArrayList<CollectionBox> boxes = null;// = eye.locateBoxes();
+        ArrayList<CollectionBox> boxes = eye.locateBoxes();
 
         for (CollectionBox box : boxes) {
             if (box.getType() == type) {
@@ -137,7 +169,7 @@ public class StateManager {
     }
 
     private void speak(String text) {
-        speech.speak(text, TextToSpeech.QUEUE_ADD, null);
+        humanInteraction.speak(text);
     }
 
     /**
@@ -145,7 +177,7 @@ public class StateManager {
      * @return Closest ball, or null if none found
      */
     private Ball closestBallOrDefault() {
-        ArrayList<Ball> balls = null; //eye.locateMyBalls();
+        ArrayList<Ball> balls = eye.locateMyBalls();
 
         Ball closest = null;
         for (Ball ball : balls) {

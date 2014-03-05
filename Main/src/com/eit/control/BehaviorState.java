@@ -1,4 +1,4 @@
-package com.eit.image;
+package com.eit.control;
 
 public enum BehaviorState {
     LOCATE_BALL,
