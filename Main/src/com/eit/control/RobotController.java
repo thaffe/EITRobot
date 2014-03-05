@@ -58,7 +58,7 @@ public class RobotController implements ImageProcessListener {
 
             if (requires == StateRequirement.BALL) {
                 eyeProcessing.startBallDetection();
-            } else if (requires == StateRequirement.BALL) {
+            } else if (requires == StateRequirement.COLLECTION_BOX) {
                 eyeProcessing.startBoxDetection();
             } else {
                 stateManager.step();
