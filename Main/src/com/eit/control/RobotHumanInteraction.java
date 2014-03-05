@@ -13,35 +13,16 @@ import java.util.Locale;
  * Created by Lysaker on 05.03.14.
  */
 public class RobotHumanInteraction implements Runnable {
-    private static final boolean LIGHT_NOTIFICATION = false;
-    private static final float FLASH_THRESHOLD = 30;
-    private static final boolean USE_LIGHT = false;
     private static final boolean TALK = false;
 
     private TextToSpeech speech;
     private boolean speechInitiated = false;
-    private boolean torchMode = false;
-    private Camera cam;
     private RobotSpeechRecognizer recognizer;
     private AudioManager audioManager;
 
     public RobotHumanInteraction(Context context, AudioManager audioManager, SensorManager sensorManager) {
         this.recognizer = new RobotSpeechRecognizer(context, this);
         this.audioManager = audioManager;
-
-        cam = Camera.open();
-
-        SensorManager mySensorManager = sensorManager;
-        Sensor LightSensor = mySensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        if(LightSensor != null){
-            System.out.println("out- Sensor.TYPE_LIGHT Available");
-            mySensorManager.registerListener(
-                    LightSensorListener,
-                    LightSensor,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }else{
-            System.out.println("out- Sensor.TYPE_LIGHT NOT Available");
-        }
 
         this.speech = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             public void onInit(int status) {
@@ -62,47 +43,6 @@ public class RobotHumanInteraction implements Runnable {
         this.speech.setPitch(0.9f);
         this.speech.setSpeechRate(0.9f);
     }
-
-    private void setMode(boolean torch) {
-
-        if (torchMode != torch && USE_LIGHT) {
-            torchMode = torch;
-            Camera.Parameters p = cam.getParameters();
-            p.setFlashMode((torch)? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF);
-            cam.setParameters(p);
-            cam.startPreview();
-
-            if (speechInitiated && LIGHT_NOTIFICATION) {
-                if (torch) {
-                    speak("Light it up!");
-                } else {
-                    speak("Don\'t need lights anymore");
-                }
-            }
-
-        }
-    }
-
-    private final SensorEventListener LightSensorListener
-            = new SensorEventListener(){
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            // TODO Auto-generated method stub
-
-        }
-
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            if(event.sensor.getType() == Sensor.TYPE_LIGHT){
-                float value = event.values[0];
-                setMode(value < FLASH_THRESHOLD);
-
-                //System.out.println("out- LIGHT: " + value);
-            }
-        }
-
-    };
 
     private void onRecognition(ArrayList<String> items) {
         if (anyContains(items, "Robot")) {
