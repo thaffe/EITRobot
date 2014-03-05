@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import org.opencv.android.*;
@@ -23,6 +24,8 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     public static double MATCH_THRESHOLD = 0.8;
     public static int CAMERA_WIDTH = 720, CAMERA_HEIGHT = 480;
     public static int USE_FRAMES = 6;
+
+    public int currentView = 0;
 
     public static final String TAG = "IMAGEPROCESSING";
     public JavaCameraView cameraView;
@@ -79,7 +82,10 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     }
 
     public void create() {
-        RelativeLayout l = (RelativeLayout) activity.findViewById(R.id.mainView);
+
+        ImageSettings imageSettings = new ImageSettings(activity,this);
+
+        FrameLayout l = (FrameLayout) activity.findViewById(R.id.mainView);
         this.cameraView = new JavaCameraView(activity, CameraBridgeViewBase.CAMERA_ID_BACK);
         this.cameraView.setCvCameraViewListener(this);
         this.cameraView.enableFpsMeter();
@@ -108,7 +114,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
             printBalls(rgb);
         }
         if (!doLocate)
-            return rgb;
+            return getImageView(rgb);
 
         if (processes.size() < USE_FRAMES) {
             processes.add((ImageProcess) new ImageProcess().execute(rgb));
@@ -167,6 +173,21 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
 
     }
 
+    private Mat getImageView(Mat rgb){
+        if(currentView > 0){
+            Imgproc.cvtColor(rgb,rgb,Imgproc.COLOR_RGB2HSV);
+        }
+        switch (currentView){
+            case 0: return rgb;break;
+            case 1: return getInRange(rgb, colorRanges[0]);break;
+            case 3: return getInRange(rgb, colorRanges[1]);break;
+        }
+
+        if(currentView == 0) return rgb;
+
+
+    }
+
     private void printBalls(Mat img) {
         double[] pixel;
         for (Ball ball : balls) {
@@ -180,9 +201,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
 
     public static ArrayList<Ball> getBalls(Mat img, ColorRange color) {
         // One way to select a range of colors by Hue
-        Mat thresh = new Mat(img.height(), img.width(), CvType.CV_8UC1);
-        Scalar minHsv = color.minHsv, maxHsv = color.maxHsv;
-        Core.inRange(img, minHsv, maxHsv, thresh);
+        Mat thresh = getInRange(img, color);
 
         Imgproc.GaussianBlur(thresh, thresh, new Size(9, 9), 0, 0);
         Mat element = Imgproc.getStructuringElement(Imgproc.CV_SHAPE_RECT, new Size(7, 7));
@@ -199,6 +218,13 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         }
 
         return balls;
+    }
+
+    public static Mat getInRange(Mat hsv, ColorRange color){
+        Mat thresh = new Mat(hsv.height(),hsv.width(), CvType.CV_8UC1);
+        Core.inRange(hsv, color.minHsv, color.maxHsv, thresh);
+
+        return thresh;
     }
 
 

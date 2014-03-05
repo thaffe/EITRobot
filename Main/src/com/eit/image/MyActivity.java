@@ -5,12 +5,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Mat;
 
 import java.util.ArrayList;
 
-public class MyActivity extends Activity implements ImageProcessListener,View.OnTouchListener{
+public class MyActivity extends Activity implements ImageProcessListener{
     ImageProcessing imgP;
 
     public MyActivity() {
@@ -20,9 +21,9 @@ public class MyActivity extends Activity implements ImageProcessListener,View.On
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.main);
         imgP.create();
-        findViewById(R.id.locateBalls).setOnTouchListener(this);
     }
 
     @Override
@@ -33,18 +34,11 @@ public class MyActivity extends Activity implements ImageProcessListener,View.On
 
     @Override
     public void OnBallDetect(ArrayList<Ball> balls) {
-        Log.i(ImageProcessing.TAG, "FOUND SOM BALLS:" + balls.size());
+        Log.i(ImageProcessing.TAG, "FOUND SOME BALLS:" + balls.size());
     }
 
     @Override
     public void OnBoxDetect(ArrayList<CollectionBox> boxes) {
 
-    }
-
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        Log.i(ImageProcessing.TAG, "START TO LOCATE BALLS");
-        imgP.locateMyBalls();
-        return false;
     }
 }
