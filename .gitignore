@@ -4,3 +4,22 @@
 *.jar
 *.war
 *.ear
+
+# Generated files
+bin/
+gen/
+
+# Gradle files
+.gradle/
+build/
+
+# Built application files
+*.apk
+*.ap_
+
+# Files for the Dalvik VM
+*.dex
+
+*.iws
+.idea/workspace.xml
+.idea/task.xml

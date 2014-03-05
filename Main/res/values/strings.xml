@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ImageProcessing</string>
+    <string-array name="views_array">
+        <item>Track</item>
+        <item>Red Thresholded</item>
+        <item>Red Canny</item>
+        <item>BlueThresholded</item>
+        <item>Blue Canny</item>
+    </string-array>
+</resources>
