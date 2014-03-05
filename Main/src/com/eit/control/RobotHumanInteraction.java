@@ -13,9 +13,10 @@ import java.util.Locale;
  * Created by Lysaker on 05.03.14.
  */
 public class RobotHumanInteraction implements Runnable {
-    private static final boolean LIGHT_NOTIFICATION = true;
+    private static final boolean LIGHT_NOTIFICATION = false;
     private static final float FLASH_THRESHOLD = 30;
-    private static final boolean USE_LIGHT = true;
+    private static final boolean USE_LIGHT = false;
+    private static final boolean TALK = false;
 
     private TextToSpeech speech;
     private boolean speechInitiated = false;
@@ -128,9 +129,12 @@ public class RobotHumanInteraction implements Runnable {
     }
 
     public void speak(String text) {
-        audioManager.setStreamMute(AudioManager.VIBRATE_TYPE_NOTIFICATION, false);
-        speech.speak(text, TextToSpeech.QUEUE_ADD, null);
-        audioManager.setStreamMute(AudioManager.VIBRATE_TYPE_NOTIFICATION, true);
+        if (TALK) {
+            audioManager.setStreamMute(AudioManager.VIBRATE_TYPE_NOTIFICATION, false);
+            speech.speak(text, TextToSpeech.QUEUE_ADD, null);
+            audioManager.setStreamMute(AudioManager.VIBRATE_TYPE_NOTIFICATION, true);
+        }
+
     }
 
     @Override
