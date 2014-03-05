@@ -38,7 +38,9 @@ public class StateManager {
      * Gives robot new instructions if it is ready for next task
      */
     public void step() {
-        if (control.isIdle()) {
+        if (!control.isIdle()) {
+            throw new IllegalStateException("Motors still busy, call step when it is idle");
+        } else {
             stepNext();
         }
     }
