@@ -50,7 +50,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
-import com.eit.image.R;
+import com.eit.R;
 
 public class ChooseDeviceActivity extends Activity {
 

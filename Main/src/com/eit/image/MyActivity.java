@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
@@ -20,9 +21,6 @@ import com.eit.bluetooth.ChooseDeviceActivity;
 import com.eit.bluetooth.NXTTalker;
 
 import java.util.ArrayList;
-
-
-
 
 public class MyActivity extends Activity implements ImageProcessListener{
     ImageProcessing imgP;
@@ -88,14 +86,14 @@ public class MyActivity extends Activity implements ImageProcessListener{
         NXTTalker mNXTTalker = new NXTTalker(mHandler);
         btCommunicator = new BluetoothCommunicator(mNXTTalker);
 
-        setContentView(R.layout.main);
+        //setContentView(R.layout.main);
         imgP.create();
     }
 
     public void setupUI() {
-        mStateDisplay = (TextView) findViewById(R.id.state_display);
+        //mStateDisplay = (TextView) findViewById(R.id.state_display);
 
-        mConnectButton = (Button) findViewById(R.id.connect_button);
+        //mConnectButton = (Button) findViewById(R.id.connect_button);
         mConnectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,7 +106,7 @@ public class MyActivity extends Activity implements ImageProcessListener{
             }
         });
 
-        mDisconnectButton = (Button) findViewById(R.id.disconnect_button);
+       // mDisconnectButton = (Button) findViewById(R.id.disconnect_button);
         mDisconnectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

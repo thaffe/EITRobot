@@ -39,26 +39,29 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.SeekBar.OnSeekBarChangeListener;
-import com.eit.image.R;
+import com.eit.R;
+import com.eit.image.*;
 
-public class NXTRemoteControl extends Activity implements OnSharedPreferenceChangeListener {
+import java.util.ArrayList;
+
+public class NXTRemoteControl extends Activity implements ImageProcessListener {
 
     private boolean NO_BT = false;
+    ImageProcessing imgP;
+
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_CONNECT_DEVICE = 2;
@@ -92,6 +95,11 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
     private boolean mRegulateSpeed;
     private boolean mSynchronizeMotors;
 
+    public NXTRemoteControl(){
+        imgP = new ImageProcessing(this, this);
+
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,10 +118,12 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
             }
         }
 
-        setupUI();
-
+       // setupUI();
         NXTTalker mNXTTalker = new NXTTalker(mHandler);
         btCommunicator = new BluetoothCommunicator(mNXTTalker);
+
+        setContentView(R.layout.main);
+        imgP.create();
 
     }
 
@@ -159,7 +169,7 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
     }
 
     private void setupUI() {
-        if (mControlsMode == MODE_BUTTONS) {
+       /* if (mControlsMode == MODE_BUTTONS) {
             setContentView(R.layout.main2);
 
             Button buttonUp = (Button) findViewById(R.id.button_up);
@@ -182,12 +192,12 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
                        // mNXTTalker.motor((byte) 1, (byte) 0, mRegulateSpeed, mSynchronizeMotors);
                         btCommunicator.openClaw();
                         return true;
-                    }*/ else {
+                    } else {
                         return false;
                     }
                 }
             });
-        }
+        }  */
 
         mStateDisplay = (TextView) findViewById(R.id.state_display);
 
@@ -199,7 +209,7 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
                     findBrick();
                 } else {
                     mState = NXTTalker.STATE_CONNECTED;
-                    displayState();
+                    //displayState();
                 }
             }
         });
@@ -212,7 +222,7 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
             }
         });
 
-        displayState();
+        //displayState();
     }
 
     @Override
@@ -288,7 +298,7 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
         setupUI();
     }
 
-    private void displayState() {
+   /* private void displayState() {
         String stateText = null;
         int color = 0;
         switch (mState){
@@ -325,6 +335,12 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
         }
         mStateDisplay.setText(stateText);
         mStateDisplay.setTextColor(color);
+    }*/
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        imgP.resume();
     }
 
     private final Handler mHandler = new Handler() {
@@ -336,7 +352,7 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
                     break;
                 case MESSAGE_STATE_CHANGE:
                     mState = msg.arg1;
-                    displayState();
+                    //displayState();
                     break;
             }
         }
@@ -351,11 +367,6 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
         if (mWakeLock.isHeld()) {
             mWakeLock.release();
         }
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        readPreferences(sharedPreferences, key);
     }
 
     private void readPreferences(SharedPreferences prefs, String key) {
@@ -379,5 +390,15 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
         } else if (key.equals("PREF_REG_SYNC")) {
             mSynchronizeMotors = prefs.getBoolean("PREF_REG_SYNC", false);
         }
+    }
+
+    @Override
+    public void OnBallDetect(ArrayList<Ball> balls) {
+        Log.i(ImageProcessing.TAG, "FOUND SOME BALLS:" + balls.size());
+    }
+
+    @Override
+    public void OnBoxDetect(ArrayList<CollectionBox> boxes) {
+
     }
 }

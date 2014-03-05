@@ -12,6 +12,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import com.eit.R;
 
 /**
  * Created by thaffe on 3/4/14.
