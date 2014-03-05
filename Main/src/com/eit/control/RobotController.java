@@ -50,7 +50,7 @@ public class RobotController implements ImageProcessListener {
 
     public void step() {
         if (stepCalled) {
-            throw new IllegalStateException("Step already called");
+            throw new IllegalStateException("Step already called, wait for stepRequiresCall() to be true before calling");
         } else {
             stepCalled = true;
 
