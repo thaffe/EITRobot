@@ -49,6 +49,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -106,8 +107,8 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
+        //requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS); ????????????????
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "NXT Remote Control");
 
@@ -135,7 +136,7 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
 
     }
 
-    private class DirectionButtonOnTouchListener implements OnTouchListener {
+   /* private class DirectionButtonOnTouchListener implements OnTouchListener {
 
         private double lmod;
         private double rmod;
@@ -174,7 +175,7 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
             }
             return true;
         }
-    }
+    }*/
 
     private void setupUI() {
        /* if (mControlsMode == MODE_BUTTONS) {

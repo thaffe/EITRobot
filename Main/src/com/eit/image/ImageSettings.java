@@ -74,7 +74,7 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         Log.i(ImageProcessing.TAG, "START TO LOCATE BALLS");
-        imgP.locateMyBalls();
+        imgP.startBallDetection();
 
         return false;
     }

@@ -15,7 +15,7 @@ public class VisualObject {
      * 0 represents in the middle, Negative number represents left. Positive number represents right.
      */
     public double getHorizontalOffset() {
-        return 2.0*y/ImageProcessing.CAMERA_HEIGHT - 1;
+        return 2.0*x/ImageProcessing.CAMERA_WIDTH - 1;
     }
 
     /**
@@ -29,6 +29,6 @@ public class VisualObject {
      * @return Value indicating distance.
      */
     public double getDistance() {
-        return 1-1.0*x/ImageProcessing.CAMERA_WIDTH;
+        return 1-1.0*y/ImageProcessing.CAMERA_HEIGHT;
     }
 }

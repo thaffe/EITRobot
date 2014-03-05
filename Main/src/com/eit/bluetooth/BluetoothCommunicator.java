@@ -19,6 +19,7 @@ public class BluetoothCommunicator implements BluetoothCommunication {
 
     @Override
     public void move(int speed) {
+        System.out.println("MOVING");
         mNXTTalker.motors((byte)speed,(byte) speed, false, false);
     }
 

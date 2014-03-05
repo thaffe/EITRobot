@@ -10,7 +10,7 @@ import java.util.Random;
 public class StateManager {
     private static final boolean SKIP_BOX = true;
     private static final double ROTATION_STEP = -1.5;
-    private static final int MOVE_STEP = 2;
+    private static final int MOVE_STEP = 10;
     private static final int UNDOCK_BACK_STEP = 20;
 
     private final BluetoothCommunication control;
@@ -117,7 +117,7 @@ public class StateManager {
 
         if (ball == null) {
             state = BehaviorState.LOCATE_BALL;
-        } else if (ball.getHorizontalOffset() != 0) {
+        } else if (Math.abs(ball.getHorizontalOffset()) >= 0.2) {
             control.rotate(ball.getHorizontalOffset());
         } else if (ball.getDistance() <= 0) {
             state = BehaviorState.PICK_UP;
