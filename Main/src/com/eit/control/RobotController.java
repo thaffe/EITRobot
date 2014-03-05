@@ -29,6 +29,8 @@ import java.util.Locale;
  * Created by Lysaker on 05.03.14.
  */
 public class RobotController implements ImageProcessListener {
+    private static final int SleepTime = 1000;
+
     private final StateManager stateManager;
     private final EyeCommunicationManager eye;
     private final EyeProcessing eyeProcessing;
@@ -48,9 +50,20 @@ public class RobotController implements ImageProcessListener {
         this.eyeProcessing.addListener(this);
     }
 
-    public void step() {
+    public void start() {
+        step();
+    }
+
+    private void step() {
         if (stepCalled) {
-            throw new IllegalStateException("Step already called, wait for stepRequiresCall() to be true before calling");
+            //throw new IllegalStateException("Step already called, wait for stepRequiresCall() to be true before calling");
+            try {
+                Thread.sleep(SleepTime);
+            } catch (InterruptedException e) {
+                // TODO: what the fuck java!
+            }
+            step();
+
         } else {
             stepCalled = true;
 
@@ -63,8 +76,11 @@ public class RobotController implements ImageProcessListener {
             } else {
                 stateManager.step();
                 stepCalled = false;
+                step();
             }
         }
+
+
     }
 
     public boolean stepRequiresCall() {
@@ -76,6 +92,7 @@ public class RobotController implements ImageProcessListener {
         eye.setFoundBalls(balls);
         stateManager.step();
         stepCalled = false;
+        step();
     }
 
     @Override
@@ -83,5 +100,6 @@ public class RobotController implements ImageProcessListener {
         eye.setFoundBoxes(boxes);
         stateManager.step();
         stepCalled = false;
+        step();
     }
 }
