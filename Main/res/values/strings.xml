@@ -7,5 +7,6 @@
         <item>Red Canny</item>
         <item>BlueThresholded</item>
         <item>Blue Canny</item>
+        <item>Square Detect</item>
     </string-array>
 </resources>

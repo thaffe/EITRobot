@@ -14,28 +14,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import com.eit.R;
 
-/**
- * Created by thaffe on 3/4/14.
- */
-public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListener2 {
+
+public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListener2, EyeProcessing {
     public static int CANNY_THRESHOLD = 500;
     public static int ACCUMULATOR = 50;
     public static double MATCH_THRESHOLD = 0.8;
     public static int CAMERA_WIDTH = 720, CAMERA_HEIGHT = 480;
     public static int USE_FRAMES = 4;
-    public static int BALL_MATCHES_THRESHOLD = USE_FRAMES/2;
+    public static int BALL_MATCHES_THRESHOLD = USE_FRAMES / 2;
 
     public int currentView = 0;
 
     public static final String TAG = "IMAGEPROCESSING";
     public JavaCameraView cameraView;
     private final Activity activity;
-    private final ImageProcessListener listener;
+    private ArrayList<ImageProcessListener> listeners = new ArrayList<ImageProcessListener>();
     private final BaseLoaderCallback loaderCallback;
     private boolean doLocate;
 
-    ConcurrentLinkedQueue<Mat> thresholds = new ConcurrentLinkedQueue<Mat>();
-    ConcurrentLinkedQueue<Mat> hsvs = new ConcurrentLinkedQueue<Mat>();
+    public static ConcurrentLinkedQueue<Mat> thresholds = new ConcurrentLinkedQueue<Mat>();
+    public static ConcurrentLinkedQueue<Mat> hsvs = new ConcurrentLinkedQueue<Mat>();
 
 
     public static ColorRange[] colorRanges = new ColorRange[]{
@@ -49,9 +47,8 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     private ArrayList<ImageProcess> processes;
     private ArrayList<Ball> balls = new ArrayList<Ball>();
 
-    public ImageProcessing(Activity activity, ImageProcessListener listener) {
+    public ImageProcessing(Activity activity) {
         this.processes = new ArrayList<ImageProcess>(USE_FRAMES);
-        this.listener = listener;
         this.activity = activity;
 
         loaderCallback = new BaseLoaderCallback(activity) {
@@ -81,7 +78,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         this.cameraView.setCvCameraViewListener(this);
         this.cameraView.enableFpsMeter();
 
-        FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(CAMERA_WIDTH,CAMERA_HEIGHT, Gravity.TOP|Gravity.LEFT);
+        FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(CAMERA_WIDTH, CAMERA_HEIGHT, Gravity.TOP | Gravity.LEFT);
         l.addView(this.cameraView, p);
         ImageSettings imageSettings = new ImageSettings(activity, this);
     }
@@ -152,9 +149,11 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
             }
         }
 
-        listener.OnBallDetect(balls);
         doLocate = false;
         processes.clear();
+        for (ImageProcessListener listener : listeners) {
+            listener.OnBallDetect(balls);
+        }
         return rgb;
     }
 
@@ -167,21 +166,51 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     }
 
     private Mat getImageView(Mat rgb) {
+        Mat img,hsv = null;
         if (currentView > 0) {
-            convertHsv(rgb);
+            hsv = getHsv(rgb);
         }
         switch (currentView) {
-            case 0:
-                return rgb;
             case 1:
-                return getInRange(rgb, colorRanges[0]);
+                img = getThresholded(hsv, colorRanges[0]);
+                releseThresholded(img);
+                break;
             case 3:
-                return getInRange(rgb, colorRanges[1]);
+                img = getThresholded(hsv, colorRanges[1]);
+                releseThresholded(img);
+                break;
+            case 5:
+                Mat t = getThresholded(hsv,colorRanges[1]);
+
+                Mat lines = new Mat();
+                Imgproc.Canny(t,t,CANNY_THRESHOLD/2,CANNY_THRESHOLD);
+                int threshold = 30;
+                int minLineSize = 10;
+                int lineGap = 20;
+
+                Imgproc.HoughLinesP(t, lines, 1, Math.PI/180, threshold, minLineSize, lineGap);
+
+                for (int x = 0; x < lines.cols(); x++)
+                {
+                    double[] vec = lines.get(0, x);
+                    double x1 = vec[0],
+                            y1 = vec[1],
+                            x2 = vec[2],
+                            y2 = vec[3];
+                    Point start = new Point(x1, y1);
+                    Point end = new Point(x2, y2);
+
+                    Core.line(rgb, start, end, new Scalar(255,0,0), 3);
+
+                }
+                img = rgb;
+                break;
+
+            default:
+                img = rgb;
         }
 
-        if (currentView == 0) return rgb;
-
-        return rgb;
+        return img;
     }
 
     private void printBalls(Mat img) {
@@ -197,7 +226,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
 
     public static ArrayList<Ball> getBalls(Mat img, ColorRange color) {
         // One way to select a range of colors by Hue
-        Mat thresh = getInRange(img, color);
+        Mat thresh = getThresholded(img, color);
 
 
         Mat circles = new Mat();
@@ -210,13 +239,19 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
             balls.add(new Ball((int) vCircle[0], (int) vCircle[1], (int) vCircle[2], color.colorIndex));
         }
 
+        releseThresholded(thresh);
         return balls;
     }
 
-    public static Mat getInRange(Mat hsv, ColorRange color) {
-        Mat thresh = new Mat(hsv.height(), hsv.width(), CvType.CV_8UC1);
+    public static Mat getThresholded(Mat hsv, ColorRange color) {
+        Mat thresh;
+        if (thresholds.size() > 0) {
+            thresh = thresholds.poll();
+        } else {
+            thresh = new Mat(hsv.height(), hsv.width(), CvType.CV_8UC1);
+        }
         Core.inRange(hsv, color.minHsv, color.maxHsv, thresh);
-        Imgproc.GaussianBlur(thresh, thresh, new Size(9, 9), 2,2);
+        Imgproc.GaussianBlur(thresh, thresh, new Size(9, 9), 2, 2);
 
         Mat element = Imgproc.getStructuringElement(Imgproc.CV_SHAPE_RECT, new Size(7, 7));
         Imgproc.erode(thresh, thresh, element);
@@ -224,8 +259,40 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         return thresh;
     }
 
-    public static void convertHsv(Mat img){
-        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HSV,4);
+    public static void releseThresholded(Mat thresh) {
+        thresholds.add(thresh);
+    }
+
+    public static Mat getHsv(Mat img) {
+        Mat hsv;
+        if (hsvs.size() > 0) {
+            hsv = hsvs.poll();
+        } else {
+            hsv = new Mat(img.height(), img.width(), CvType.CV_8UC4);
+        }
+
+        Imgproc.cvtColor(img, hsv, Imgproc.COLOR_RGB2HSV, 4);
+        return hsv;
+    }
+
+
+    public static void releaseHsv(Mat hsv) {
+        hsvs.add(hsv);
+    }
+
+    @Override
+    public void startBoxDetection() {
+        // doLocate = true;
+    }
+
+    @Override
+    public void startBallDetection() {
+        doLocate = true;
+    }
+
+    @Override
+    public void addListener(ImageProcessListener listener) {
+        this.listeners.add(listener);
     }
 
 
@@ -234,12 +301,14 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         @Override
         protected ArrayList<Ball> doInBackground(Mat... mats) {
             ArrayList<Ball> balls = new ArrayList<Ball>();
-            Mat img = mats[0];
-            ImageProcessing.convertHsv(img);
+            Mat img = ImageProcessing.getHsv(mats[0]);
 
             for (ColorRange c : colorRanges) {
                 balls.addAll(ImageProcessing.getBalls(img, c));
             }
+
+
+            releaseHsv(img);
             return balls;
         }
 

@@ -60,7 +60,8 @@ public class MyActivity extends Activity implements ImageProcessListener{
     private boolean mSynchronizeMotors;
 
     public MyActivity() {
-        imgP = new ImageProcessing(this, this);
+        imgP = new ImageProcessing(this);
+        imgP.addListener(this);
     }
 
     @Override
