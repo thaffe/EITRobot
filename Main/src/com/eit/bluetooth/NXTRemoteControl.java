@@ -34,7 +34,6 @@ import android.os.Bundle;
  * tilt controls
  */
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -42,21 +41,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.content.res.Configuration;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.preference.PreferenceManager;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -136,9 +129,7 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            //Log.i("NXT", "onTouch event: " + Integer.toString(event.getAction()));
             int action = event.getAction();
-            //if ((action == MotionEvent.ACTION_DOWN) || (action == MotionEvent.ACTION_MOVE)) {
             if (action == MotionEvent.ACTION_DOWN) {
                 byte power = (byte) mPower;
                 if (mReverse) {
@@ -194,24 +185,6 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
                     }*/ else {
                         return false;
                     }
-                }
-            });
-
-            SeekBar powerSeekBar = (SeekBar) findViewById(R.id.power_seekbar);
-            powerSeekBar.setProgress(mPower);
-            powerSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress,
-                                              boolean fromUser) {
-                    mPower = progress;
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
                 }
             });
         }
