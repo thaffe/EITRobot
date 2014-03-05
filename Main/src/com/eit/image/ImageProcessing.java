@@ -3,14 +3,14 @@ package com.eit.image;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
+import android.view.Gravity;
 import android.widget.FrameLayout;
 import org.opencv.android.*;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -21,7 +21,8 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     public static int ACCUMULATOR = 50;
     public static double MATCH_THRESHOLD = 0.8;
     public static int CAMERA_WIDTH = 720, CAMERA_HEIGHT = 480;
-    public static int USE_FRAMES = 6;
+    public static int USE_FRAMES = 4;
+    public static int BALL_MATCHES_THRESHOLD = USE_FRAMES/2;
 
     public int currentView = 0;
 
@@ -32,11 +33,15 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     private final BaseLoaderCallback loaderCallback;
     private boolean doLocate;
 
+    ConcurrentLinkedQueue<Mat> thresholds = new ConcurrentLinkedQueue<Mat>();
+    ConcurrentLinkedQueue<Mat> hsvs = new ConcurrentLinkedQueue<Mat>();
+
+
     public static ColorRange[] colorRanges = new ColorRange[]{
             //Red
-            new ColorRange(0, 130, 120, 10, 255, 255, Ball.RED),
+            new ColorRange(0, 90, 100, 10, 255, 255, Ball.RED),
             //Blue
-            new ColorRange(30, 180, 50, 120, 255, 255, Ball.BLUE)
+            new ColorRange(110, 120, 10, 130, 255, 200, Ball.BLUE)
     };
 
 
@@ -55,17 +60,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
                 switch (status) {
                     case LoaderCallbackInterface.SUCCESS: {
                         // Load native library after(!) OpenCV initialization
-                        //System.loadLibrary("mixed_sample");
                         cameraView.enableView();
-                        Log.i(TAG, "CAMERA ENABLES");
-                        cameraView.setOnTouchListener(new View.OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View view, MotionEvent motionEvent) {
-                                return false;
-                            }
-                        });
-//                    mOpenCvCameraView.setOnTouchListener(new View.OnTouchListener() {
-
                     }
                     break;
                     default: {
@@ -80,14 +75,14 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     }
 
     public void create() {
-
-        ImageSettings imageSettings = new ImageSettings(activity,this);
-
         FrameLayout l = (FrameLayout) activity.findViewById(R.id.mainView);
         this.cameraView = new JavaCameraView(activity, CameraBridgeViewBase.CAMERA_ID_BACK);
         this.cameraView.setCvCameraViewListener(this);
         this.cameraView.enableFpsMeter();
-        l.addView(this.cameraView, 720, 480);
+
+        FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(CAMERA_WIDTH,CAMERA_HEIGHT, Gravity.TOP|Gravity.LEFT);
+        l.addView(this.cameraView, p);
+        ImageSettings imageSettings = new ImageSettings(activity, this);
     }
 
     public void resume() {
@@ -108,7 +103,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgb = inputFrame.rgba();
-        if(balls.size() > 0){
+        if (balls.size() > 0) {
             printBalls(rgb);
         }
         if (!doLocate)
@@ -132,6 +127,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
                         if (oldBall.match(newBall) > MATCH_THRESHOLD) {
                             oldBall.merge(newBall);
                             matched = true;
+                            Log.i(TAG, "MERGING BALL");
                             break;
                         }
                     }
@@ -147,10 +143,10 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         }
 
         int i = 0;
-        while(i < balls.size()){
-            if(balls.get(i).matches < 2){
+        while (i < balls.size()) {
+            if (balls.get(i).matches < MATCH_THRESHOLD) {
                 balls.remove(i);
-            }else{
+            } else {
                 i++;
             }
         }
@@ -169,17 +165,20 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
 
     }
 
-    private Mat getImageView(Mat rgb){
-        if(currentView > 0){
-            Imgproc.cvtColor(rgb,rgb,Imgproc.COLOR_RGB2HSV);
+    private Mat getImageView(Mat rgb) {
+        if (currentView > 0) {
+            convertHsv(rgb);
         }
-        switch (currentView){
-            case 0: return rgb;
-            case 1: return getInRange(rgb, colorRanges[0]);
-            case 3: return getInRange(rgb, colorRanges[1]);
+        switch (currentView) {
+            case 0:
+                return rgb;
+            case 1:
+                return getInRange(rgb, colorRanges[0]);
+            case 3:
+                return getInRange(rgb, colorRanges[1]);
         }
 
-        if(currentView == 0) return rgb;
+        if (currentView == 0) return rgb;
 
         return rgb;
     }
@@ -187,11 +186,11 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     private void printBalls(Mat img) {
         double[] pixel;
         for (Ball ball : balls) {
-            Scalar color = new Scalar(0,0,0);
+            Scalar color = new Scalar(0, 0, 0);
             color.val[ball.type] = 255;
             Point pt = new Point(ball.x, ball.y);
-            Core.circle(img,pt, ball.radius, color, 3);
-            Core.circle(img,pt, 3, new Scalar(255, 255, 255), 2);
+            Core.circle(img, pt, ball.radius, color, 3);
+            Core.circle(img, pt, 3, new Scalar(255, 255, 255), 2);
         }
     }
 
@@ -199,12 +198,9 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         // One way to select a range of colors by Hue
         Mat thresh = getInRange(img, color);
 
-        Imgproc.GaussianBlur(thresh, thresh, new Size(9, 9), 0, 0);
-        Mat element = Imgproc.getStructuringElement(Imgproc.CV_SHAPE_RECT, new Size(7, 7));
-        Imgproc.erode(thresh, thresh, element);
-        Imgproc.dilate(thresh, thresh, element);
 
         Mat circles = new Mat();
+
         Imgproc.HoughCircles(thresh, circles, Imgproc.CV_HOUGH_GRADIENT, 2, img.height() / 4, CANNY_THRESHOLD, ACCUMULATOR, 10, 0);
 
         ArrayList<Ball> balls = new ArrayList<Ball>();
@@ -216,11 +212,19 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         return balls;
     }
 
-    public static Mat getInRange(Mat hsv, ColorRange color){
-        Mat thresh = new Mat(hsv.height(),hsv.width(), CvType.CV_8UC1);
+    public static Mat getInRange(Mat hsv, ColorRange color) {
+        Mat thresh = new Mat(hsv.height(), hsv.width(), CvType.CV_8UC1);
         Core.inRange(hsv, color.minHsv, color.maxHsv, thresh);
+        Imgproc.GaussianBlur(thresh, thresh, new Size(9, 9), 2,2);
 
+        Mat element = Imgproc.getStructuringElement(Imgproc.CV_SHAPE_RECT, new Size(7, 7));
+        Imgproc.erode(thresh, thresh, element);
+        Imgproc.dilate(thresh, thresh, element);
         return thresh;
+    }
+
+    public static void convertHsv(Mat img){
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HSV,4);
     }
 
 
@@ -230,7 +234,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         protected ArrayList<Ball> doInBackground(Mat... mats) {
             ArrayList<Ball> balls = new ArrayList<Ball>();
             Mat img = mats[0];
-            Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HSV, 4);
+            ImageProcessing.convertHsv(img);
 
             for (ColorRange c : colorRanges) {
                 balls.addAll(ImageProcessing.getBalls(img, c));
