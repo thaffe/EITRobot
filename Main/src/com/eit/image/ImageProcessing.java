@@ -6,8 +6,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import org.opencv.android.*;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
@@ -18,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by thaffe on 3/4/14.
  */
-public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListener2, EyeCommunication {
+public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListener2 {
     public static int CANNY_THRESHOLD = 500;
     public static int ACCUMULATOR = 50;
     public static double MATCH_THRESHOLD = 0.8;
@@ -163,12 +161,10 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         return rgb;
     }
 
-    @Override
     public void locateMyBalls() {
         doLocate = true;
     }
 
-    @Override
     public void locateBoxes() {
 
     }

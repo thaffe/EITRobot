@@ -11,8 +11,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
@@ -20,8 +18,6 @@ import android.widget.Toast;
 import com.eit.bluetooth.BluetoothCommunicator;
 import com.eit.bluetooth.ChooseDeviceActivity;
 import com.eit.bluetooth.NXTTalker;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.core.Mat;
 
 import java.util.ArrayList;
 
