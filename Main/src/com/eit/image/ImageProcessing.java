@@ -157,14 +157,6 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         return rgb;
     }
 
-    public void locateMyBalls() {
-        doLocate = true;
-    }
-
-    public void locateBoxes() {
-
-    }
-
     private Mat getImageView(Mat rgb) {
         Mat img,hsv = null;
         if (currentView > 0) {
@@ -288,6 +280,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     @Override
     public void startBallDetection() {
         doLocate = true;
+        balls.clear();
     }
 
     @Override
