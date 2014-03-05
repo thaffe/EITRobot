@@ -70,8 +70,6 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int REQUEST_CONNECT_DEVICE = 2;
     private static final int REQUEST_SETTINGS = 3;
-    boolean balle = false;
-
 
     public static final int MESSAGE_TOAST = 1;
     public static final int MESSAGE_STATE_CHANGE = 2;
@@ -79,14 +77,10 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
     public static final String TOAST = "toast";
 
     private static final int MODE_BUTTONS = 1;
-    private static final int MODE_TOUCHPAD = 2;
-    private static final int MODE_TANK = 3;
-    private static final int MODE_TANK3MOTOR = 4;
 
     private BluetoothAdapter mBluetoothAdapter;
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
-    //private NXTTalker mNXTTalker;
     private BluetoothCommunicator btCommunicator;
 
     private int mState = NXTTalker.STATE_NONE;
@@ -96,7 +90,6 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
     private TextView mStateDisplay;
     private Button mConnectButton;
     private Button mDisconnectButton;
-    private Menu mMenu;
 
     private int mPower = 80;
     private int mControlsMode = MODE_BUTTONS;
@@ -307,7 +300,6 @@ public class NXTRemoteControl extends Activity implements OnSharedPreferenceChan
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //Log.i("NXT", "NXTRemoteControl.onSaveInstanceState()");
         if (mState == NXTTalker.STATE_CONNECTED) {
             outState.putString("device_address", mDeviceAddress);
         }

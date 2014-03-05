@@ -20,6 +20,9 @@ build/
 # Files for the Dalvik VM
 *.dex
 
+#local property
+local.properties
+
 *.iws
 .idea/workspace.xml
 .idea/task.xml
