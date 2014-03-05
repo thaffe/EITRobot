@@ -53,6 +53,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.eit.R;
+import com.eit.control.RobotController;
 import com.eit.image.*;
 
 import java.util.ArrayList;
@@ -95,9 +96,11 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
     private boolean mRegulateSpeed;
     private boolean mSynchronizeMotors;
 
-    public NXTRemoteControl(){
-        imgP = new ImageProcessing(this, this);
+    private RobotController robotController;
 
+
+    public NXTRemoteControl(){
+        imgP = new ImageProcessing(this);
     }
 
     @Override
@@ -118,12 +121,17 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
             }
         }
 
-       // setupUI();
         NXTTalker mNXTTalker = new NXTTalker(mHandler);
         btCommunicator = new BluetoothCommunicator(mNXTTalker);
 
         setContentView(R.layout.main);
         imgP.create();
+
+
+        robotController = new RobotController(imgP,btCommunicator,this);
+        robotController.start();
+
+       // setupUI();
 
     }
 
