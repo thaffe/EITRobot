@@ -77,6 +77,7 @@ public class StateManager implements ImageProcessListener {
 
     private void pickupBall() {
         control.closeClaw();
+        this.state = BehaviorState.LOCATE_BOX;
     }
 
     private void locateBall() {
@@ -110,45 +111,51 @@ public class StateManager implements ImageProcessListener {
                 state = BehaviorState.PICK_UP;
                 Log.i(TAG, "IM HERE");
             }
-
             step();
         }
     }
 
     private void locateBox() {
-        if (box == null) {
-            searchStep();
+        if (init) {
+            speak("Locating box");
+            init = false;
+            radius = 0;
+        }
+
+        if (positionChanged) {
+            startBoxTracking();
         } else {
-            state = BehaviorState.DOCK;
+            if (box == null) {
+                searchStep();
+            } else {
+                speak("Box found");
+                state = BehaviorState.DOCK;
+            }
+            step();
         }
     }
 
     private void reachBox() {
-        if (naiveBoxRun) {
-
-            if (control.isSensorPressed()) {
-                naiveBoxRun = false;
-                state = BehaviorState.RELEASE_BALL;
-            } else {
-            }
-
+        if (positionChanged) {
+            startBoxTracking();
         } else {
-
             if (box == null) {
                 state = BehaviorState.LOCATE_BOX;
-            } else if (box.getHorizontalOffset() != 0) {
-                moveTowards(box);
+                radius = 0;
+                step();
+            } else if (control.isSensorPressed()) {
+                state = BehaviorState.RELEASE_BALL;
+                Log.i(TAG, "BALL RELEASE");
+                step();
             } else {
-                naiveBoxRun = true;
+                moveTowards(box);
             }
         }
-
     }
 
     private void speak(String text) {
         humanInteraction.speak(text);
     }
-
 
     private void setSpeed(double percentL, double percentR) {
         control.setSpeed((int) (percentL * MAX_SPEED), (int) (percentR * MAX_SPEED));
