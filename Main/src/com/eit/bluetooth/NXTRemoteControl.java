@@ -127,83 +127,9 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
 
         robotController = new RobotController(imgP,btCommunicator,this);
         robotController.start();
-
-       // setupUI();
-
     }
 
-   /* private class DirectionButtonOnTouchListener implements OnTouchListener {
-
-        private double lmod;
-        private double rmod;
-
-        public DirectionButtonOnTouchListener(double l, double r) {
-            lmod = l;
-            rmod = r;
-        }
-
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            int action = event.getAction();
-            if (action == MotionEvent.ACTION_DOWN) {
-                byte power = (byte) mPower;
-                if (mReverse) {
-                    power *= -1;
-                }
-                byte l = (byte) (power*lmod);
-                byte r = (byte) (power*rmod);
-                if (!mReverseLR) {
-                    //mNXTTalker.motors(l, r, mRegulateSpeed, mSynchronizeMotors);
-                    //btCommunicator.move(20);
-                   // btCommunicator.rotate(30)
-                   // ;
-                    //Høyre +
-                    //venstre -
-
-                    btCommunicator.rotate(30);
-
-                } else {
-                    //mNXTTalker.motors(r, l, mRegulateSpeed, mSynchronizeMotors);
-                    btCommunicator.move(20);
-                }
-            } else if ((action == MotionEvent.ACTION_UP) || (action == MotionEvent.ACTION_CANCEL)) {
-                //mNXTTalker.motors((byte) 0, (byte) 0, mRegulateSpeed, mSynchronizeMotors);
-            }
-            return true;
-        }
-    }*/
-
     private void setupUI() {
-       /* if (mControlsMode == MODE_BUTTONS) {
-            setContentView(R.layout.main2);
-
-            Button buttonUp = (Button) findViewById(R.id.button_up);
-            buttonUp.setOnTouchListener(new DirectionButtonOnTouchListener(1, 1));
-            Button buttonLeft = (Button) findViewById(R.id.button_left);
-            buttonLeft.setOnTouchListener(new DirectionButtonOnTouchListener(-0.6, 0.6));
-            Button buttonDown = (Button) findViewById(R.id.button_down);
-            buttonDown.setOnTouchListener(new DirectionButtonOnTouchListener(-1, -1));
-            Button buttonRight = (Button) findViewById(R.id.button_right);
-            buttonRight.setOnTouchListener(new DirectionButtonOnTouchListener(0.6, -0.6));
-            Button buttonClaw = (Button) findViewById(R.id.button_claw);
-            buttonClaw.setOnTouchListener( new OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                        //mNXTTalker.motor((byte) 1, (byte) -20, mRegulateSpeed, mSynchronizeMotors);
-                        btCommunicator.openClaw();
-                        return true;
-                    } /*else if (event.getAction() == MotionEvent.ACTION_UP) {
-                       // mNXTTalker.motor((byte) 1, (byte) 0, mRegulateSpeed, mSynchronizeMotors);
-                        btCommunicator.openClaw();
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            });
-        }  */
-
         mStateDisplay = (TextView) findViewById(R.id.state_display);
 
         mConnectButton = (Button) findViewById(R.id.connect_button);
