@@ -2,23 +2,14 @@ package com.eit.image;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.eit.R;
-import com.eit.bluetooth.BluetoothCommunicator;
-import com.eit.bluetooth.ChooseDeviceActivity;
+import com.eit.bluetooth.BluetoothCommunication;
 import com.eit.bluetooth.NXTTalker;
 
 import java.util.ArrayList;
@@ -42,7 +33,7 @@ public class MyActivity extends Activity implements ImageProcessListener{
     private BluetoothAdapter mBluetoothAdapter;
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
-    private BluetoothCommunicator btCommunicator;
+    private BluetoothCommunication btCommunicator;
 
     private int mState = NXTTalker.STATE_NONE;
     private int mSavedState = NXTTalker.STATE_NONE;
@@ -84,6 +75,12 @@ public class MyActivity extends Activity implements ImageProcessListener{
         for (Ball ball : balls) {
             Log.i(ImageProcessing.TAG,String.format("Hoffset:%f    Distance:%f",ball.getHorizontalOffset(), ball.getDistance()));
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        imgP.stop();
     }
 
     @Override

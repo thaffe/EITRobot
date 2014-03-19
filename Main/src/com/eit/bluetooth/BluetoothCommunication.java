@@ -1,27 +1,58 @@
 package com.eit.bluetooth;
 
-public interface BluetoothCommunication {
-    /**
-     * Start to move forward, then stopping and go idle.
-     * @param distance Number of units to move forward,
-     */
-    void move(int distance);
+import android.bluetooth.BluetoothDevice;
+import android.util.Log;
+import com.eit.control.StateManager;
 
-    /**
-     * Rotate a number of degrees and then stop. Positive value indicates right rotation
-     * Negative value indicates left.
-     * @param degrees Number of degrees to rotate
-     */
-	void rotate(double degrees);
-	
-	void openClaw();
-	
-	void closeClaw();
+/**
+ * Created by Fredrik on 26.02.14.
+ */
+public class BluetoothCommunication {
+    private NXTTalker mNXTTalker;
+    private int mPower = 45;
 
-    /**
-     * @return True if none of the engines are running
-     */
-    boolean isIdle();
-	
-	boolean isSensorPressed();
+    public BluetoothCommunication(NXTTalker nxtTalker) {
+        this.mNXTTalker = nxtTalker;
+    }
+
+    public void connect(BluetoothDevice device) {
+        mNXTTalker.connect(device);
+    }
+
+
+    public void openClaw() {
+        if (false) {
+            Log.i("CLAW", "CLAWING OPEN");
+            mNXTTalker.motor(1, (byte) 20, false, false);
+        }
+    }
+
+    boolean closed = false;
+
+    public void closeClaw() {
+        if (!closed) {
+            Log.i("ROBOT", "CLAW CLOSE");
+            this.stop();
+            mNXTTalker.motor(1, (byte) -20, false, false);
+            closed = true;
+        }
+    }
+
+    public boolean isIdle() {
+        return false;
+    }
+
+    public boolean isSensorPressed() {
+        return false;
+    }
+
+
+    public void stop() {
+        mNXTTalker.motors((byte) 0, (byte) 0, false, false);
+    }
+
+    public void setSpeed(int l, int r) {
+        mNXTTalker.motors((byte) l, (byte) r, false, false);
+    }
+
 }

@@ -1,8 +1,11 @@
 package com.eit.image;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 public class VisualObject {
     protected int type;
-    protected int x,y;
+    protected int x,y,radius;
 
     public VisualObject(int x, int y, int type) {
         this.x = x;
@@ -29,6 +32,7 @@ public class VisualObject {
      * @return Value indicating distance.
      */
     public double getDistance() {
-        return 1.0*x/ImageProcessing.CAMERA_WIDTH -0.1;
+        return 1 - radius/(480*0.4/2);
+//        return 1.0*x/ImageProcessing.CAMERA_WIDTH -0.25;
     }
 }

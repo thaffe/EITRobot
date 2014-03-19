@@ -1,5 +1,7 @@
 package com.eit.image;
 
+import java.util.ArrayList;
+
 public class Ball extends VisualObject {
     public static double DISTANCE_THRESHOLD = 100;
     public static double RADIUS_THRESHOLD = 100;
@@ -8,10 +10,9 @@ public class Ball extends VisualObject {
     public static final int GREEN = 1;
     public static final int BLUE = 2;
 
-    protected int radius;
     public int matches = 0;
 
-    public Ball(int x, int y, int radius,int type) {
+    public Ball(int x, int y, int radius, int type) {
         super(x, y, type);
         this.radius = radius;
     }
@@ -24,7 +25,7 @@ public class Ball extends VisualObject {
     }
 
     public double match(Ball b) {
-        if(this.type != b.type) return 0;
+        if (this.type != b.type) return 0;
 
         double x = Math.abs(this.x - b.x);
         double y = Math.abs(this.y - b.y);
@@ -38,7 +39,7 @@ public class Ball extends VisualObject {
     }
 
     public void merge(Ball ball) {
-        matches+= 1+ ball.matches;
+        matches += 1 + ball.matches;
         x = nextAvg(x, ball.x);
         y = nextAvg(y, ball.y);
         radius = nextAvg(radius, ball.radius);
@@ -46,5 +47,24 @@ public class Ball extends VisualObject {
 
     private int nextAvg(int avg, int newNumber) {
         return (int) (((matches - 1) * avg + newNumber) / (matches * 1.0));
+    }
+
+
+    public static Ball getClosest(ArrayList<Ball> balls) {
+        if (balls.size() == 0) return null;
+
+        Ball ball = balls.get(0);
+        double distance = ball.getDistance();
+        for (int i = 1; i < balls.size(); i++) {
+            Ball b = balls.get(i);
+            double newDist = b.getDistance();
+            if (newDist < distance) {
+                distance = newDist;
+                ball = b;
+            }
+
+        }
+
+        return ball;
     }
 }

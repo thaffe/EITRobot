@@ -1,6 +1,18 @@
 package com.eit.bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.util.UUID;
 
 /*
  * Copyright (c) 2010 Jacek Fedorynski
@@ -17,7 +29,6 @@ import android.os.Bundle;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /*
  * This file is derived from:
  *
@@ -25,18 +36,6 @@ import android.os.Bundle;
  *
  * Copyright (c) 2009 The Android Open Source Project
  */
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
-import java.util.UUID;
-
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.os.Handler;
-import android.os.Message;
 
 public class NXTTalker {
 
@@ -141,8 +140,8 @@ public class NXTTalker {
 
 
     public void motors(byte l, byte r, boolean speedReg, boolean motorSync) {
-        byte[] data = { 0x0c, 0x00, (byte) 0x80, 0x04, 0x02, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
-                        0x0c, 0x00, (byte) 0x80, 0x04, 0x01, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00 };
+        byte[] data = {0x0c, 0x00, (byte) 0x80, 0x04, 0x02, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
+                0x0c, 0x00, (byte) 0x80, 0x04, 0x01, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00};
         data[5] = l;
         data[19] = r;
         if (speedReg) {
@@ -156,17 +155,17 @@ public class NXTTalker {
         }
 
         //Action duration
-        data[10] = (byte)360;
-        data[11] = (byte)(360 >> 8);
+        data[10] = (byte) 360;
+        data[11] = (byte) (360 >> 8);
 
-        data[24] = (byte)360;
-        data[25] = (byte)(360 >> 8);
+        data[24] = (byte) 360;
+        data[25] = (byte) (360 >> 8);
 
         write(data);
     }
 
     public void motor(int motor, byte power, boolean speedReg, boolean motorSync) {
-        byte[] data = { 0x0c, 0x00, (byte) 0x80, 0x04, 0x02, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00 };
+        byte[] data = {0x0c, 0x00, (byte) 0x80, 0x04, 0x02, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00};
 
         if (motor == 0) {
             data[4] = 0x02;
@@ -174,7 +173,7 @@ public class NXTTalker {
             data[4] = 0x01;
         }
 
-        if(motor == 1) {
+        if (motor == 1) {
             data[4] = 0x00;
         }
 
@@ -186,17 +185,20 @@ public class NXTTalker {
             data[7] |= 0x02;
         }
 
-        //Action duration
-        data[10] = (byte)30;
-        data[11] = (byte)(30 >> 8);
-
+//
+//        (0xff & tachoLimit),
+//                (byte) (tachoLimit >>> 8), (byte)(tachoLimit >>> 16), (byte)(tachoLimit >>> 20),
+//                (byte)(tachoLimit >>> 24)
+        long angle = 60;
+        data[10] = (byte)(angle);
+        data[11] = (byte) (angle >>> 8);
         write(data);
     }
 
     public void motors3(byte l, byte r, byte action, boolean speedReg, boolean motorSync) {
-        byte[] data = { 0x0c, 0x00, (byte) 0x80, 0x04, 0x02, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
+        byte[] data = {0x0c, 0x00, (byte) 0x80, 0x04, 0x02, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
                 0x0c, 0x00, (byte) 0x80, 0x04, 0x01, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
-                0x0c, 0x00, (byte) 0x80, 0x04, 0x00, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00 };
+                0x0c, 0x00, (byte) 0x80, 0x04, 0x00, 0x32, 0x07, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00};
 
         data[5] = l;
         data[19] = r;
@@ -243,7 +245,7 @@ public class NXTTalker {
                 try {
                     // This is a workaround that reportedly helps on some older devices like HTC Desire, where using
                     // the standard createRfcommSocketToServiceRecord() method always causes connect() to fail.
-                    Method method = mmDevice.getClass().getMethod("createRfcommSocket", new Class[] { int.class });
+                    Method method = mmDevice.getClass().getMethod("createRfcommSocket", new Class[]{int.class});
                     mmSocket = (BluetoothSocket) method.invoke(mmDevice, Integer.valueOf(1));
                     mmSocket.connect();
                 } catch (Exception e1) {

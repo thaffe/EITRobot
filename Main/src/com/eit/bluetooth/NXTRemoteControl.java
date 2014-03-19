@@ -44,11 +44,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
@@ -79,7 +76,7 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
     private BluetoothAdapter mBluetoothAdapter;
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
-    private BluetoothCommunicator btCommunicator;
+    private BluetoothCommunication btCommunicator;
 
     private int mState = NXTTalker.STATE_NONE;
     private int mSavedState = NXTTalker.STATE_NONE;
@@ -123,11 +120,10 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
         }
 
         NXTTalker mNXTTalker = new NXTTalker(mHandler);
-        btCommunicator = new BluetoothCommunicator(mNXTTalker);
+        btCommunicator = new BluetoothCommunication(mNXTTalker);
 
         setContentView(R.layout.main);
         imgP.create();
-
 
         robotController = new RobotController(imgP,btCommunicator,this);
         robotController.start();
@@ -258,8 +254,8 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
     }
 
     private void findBrick() {
-        Intent intent = new Intent(this, ChooseDeviceActivity.class);
-        startActivityForResult(intent, REQUEST_CONNECT_DEVICE);
+//        Intent intent = new Intent(this, ChooseDeviceActivity.class);
+//        startActivityForResult(intent, REQUEST_CONNECT_DEVICE);
     }
 
     @Override
@@ -361,6 +357,10 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
                     break;
                 case MESSAGE_STATE_CHANGE:
                     mState = msg.arg1;
+                    if(mState == NXTTalker.STATE_CONNECTED){
+                        Log.i("NXT","CONNECTED");
+                        robotController.start();
+                    }
                     //displayState();
                     break;
             }
