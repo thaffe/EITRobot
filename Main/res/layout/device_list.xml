@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical" android:layout_height="fill_parent" android:layout_width="fill_parent">
+        android:orientation="vertical" android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        android:rotation="180">
     <TextView android:layout_height="wrap_content" android:text="Paired devices:" android:id="@+id/title_paired_devices" android:layout_width="fill_parent" android:visibility="gone" android:background="#666"
               android:textColor="#fff"
               android:paddingLeft="5dp"></TextView>

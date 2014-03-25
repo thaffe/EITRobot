@@ -7,7 +7,7 @@ import com.eit.image.*;
 import java.util.ArrayList;
 
 public class StateManager implements ImageProcessListener {
-    public final static int MAX_SPEED = 100;
+    public final static int MAX_SPEED = -50;
     private static final boolean SKIP_BOX = true;
     private static final double ROTATION_STEP = -1.5;
     private static final int UNDOCK_BACK_STEP = 800;
@@ -37,7 +37,7 @@ public class StateManager implements ImageProcessListener {
     }
 
     public void step() {
-        Log.i(TAG, "ROBOT: " + state.name());
+        Log.i(TAG, "STATE" + state.name());
         switch (state) {
             case LOCATE_BALL:
                 locateBall();
@@ -64,20 +64,25 @@ public class StateManager implements ImageProcessListener {
     }
 
     private void undock() {
-        move(-1,-1,UNDOCK_BACK_STEP);
-        move(-1,1, 500);
+        move(-1, -1, UNDOCK_BACK_STEP);
+        move(-1, 1, 500);
         state = BehaviorState.LOCATE_BALL;
         init = true;
+
+        step();
     }
 
     private void releaseBall() {
         control.openClaw();
-        state = BehaviorState.UNDOCK;
+        state = BehaviorState.LOCATE_BALL;
+        positionChanged = true;
+        step();
     }
 
     private void pickupBall() {
         control.closeClaw();
-        this.state = BehaviorState.LOCATE_BOX;
+        this.state = BehaviorState.RELEASE_BALL;
+        step();
     }
 
     private void locateBall() {
@@ -158,6 +163,7 @@ public class StateManager implements ImageProcessListener {
     }
 
     private void setSpeed(double percentL, double percentR) {
+        Log.i(TAG, String.format("SPEED L:%f  R:%f", percentL * MAX_SPEED, percentR * MAX_SPEED));
         control.setSpeed((int) (percentL * MAX_SPEED), (int) (percentR * MAX_SPEED));
         positionChanged = true;
     }
@@ -172,9 +178,13 @@ public class StateManager implements ImageProcessListener {
         control.stop();
     }
 
-    private void searchStep(){
+    private void searchStep() {
         move(radius, 1, 500);
-        radius += 0.05;
+        radius += 0.01;
+    }
+
+    public double getSigmoid(double x) {
+        return 2 / (1 + Math.exp(-(8 * x + 3))) - 1;
     }
 
     /**
@@ -188,15 +198,23 @@ public class StateManager implements ImageProcessListener {
         if (distance <= 0) return true;
 
         double offset = object.getHorizontalOffset();
-        double left = 2 * offset + 1;
-        double right = -2 * offset + 1;
-        move(left, right, (int) (200 * (distance + 0.5)));
+//        double left = Math.min(2.0 * offset + 1,1);
+//        double right = Math.min(-2.0 * offset +1,1);
+        double x = (offset + 2 * (1 - distance)) / 3;
+        double left = getSigmoid(x);
+        double right = getSigmoid(-x);
+        Log.i(TAG, String.format("SUPER: L:%f, R:%f of:%f", left, right, offset));
+
+        double deltaTurn = 2 - Math.abs(left - right);
+        double time = 200 * (2 * distance + deltaTurn / 3.0 + 0.2);
+        move(left, right, (int) time);
 
         return false;
     }
 
     private void startBallTracking() {
         this.positionChanged = false;
+        Log.i(TAG, "START Ball tracking");
         eye.startBallDetection();
     }
 

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.eit.R;
 import com.eit.bluetooth.BluetoothCommunication;
 import com.eit.bluetooth.NXTTalker;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 

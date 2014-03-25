@@ -16,7 +16,7 @@ import org.opencv.core.Scalar;
  * Created by thaffe on 3/4/14.
  */
 public class ImageSettings implements AdapterView.OnItemSelectedListener, View.OnTouchListener, NumberPicker.OnValueChangeListener {
-    Button locateBalls, trackSquares;
+    Button locateBalls, locateRect;
     Spinner spinner;
     ImageProcessing imgP;
     Activity activity;
@@ -31,6 +31,10 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
         this.activity = activity;
         locateBalls = (Button) activity.findViewById(R.id.locateBalls);
         locateBalls.setOnTouchListener(this);
+
+        locateRect = (Button) activity.findViewById(R.id.locateRect);
+        locateRect.setOnTouchListener(this);
+
         spinner = (Spinner) activity.findViewById(R.id.view_spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(activity,
                 R.array.views_array, android.R.layout.simple_spinner_item);
@@ -74,7 +78,11 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         Log.i(ImageProcessing.TAG, "START TO LOCATE BALLS");
-        imgP.startBallDetection();
+        if(view.getId() == R.id.locateBalls)
+            imgP.startBallDetection();
+        else{
+            imgP.startBoxDetection();
+        }
 
         return false;
     }

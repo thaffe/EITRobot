@@ -10,12 +10,22 @@
             android:layout_height="wrap_content"
             android:layout_gravity="right|top"
             android:orientation="vertical">
-
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|top"
+                android:orientation="horizontal">
         <Button
                 android:layout_width="60dp"
                 android:layout_height="40dp"
                 android:text="Ball"
                 android:id="@+id/locateBalls"/>
+        <Button
+                android:layout_width="60dp"
+                android:layout_height="40dp"
+                android:text="Rect"
+                android:id="@+id/locateRect"/>
+        </LinearLayout>
 
         <Spinner
                 android:id="@+id/view_spinner"

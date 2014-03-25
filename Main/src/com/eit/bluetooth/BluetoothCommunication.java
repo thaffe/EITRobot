@@ -2,7 +2,6 @@ package com.eit.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
-import com.eit.control.StateManager;
 
 /**
  * Created by Fredrik on 26.02.14.
@@ -10,6 +9,7 @@ import com.eit.control.StateManager;
 public class BluetoothCommunication {
     private NXTTalker mNXTTalker;
     private int mPower = 45;
+    private boolean closed = false;
 
     public BluetoothCommunication(NXTTalker nxtTalker) {
         this.mNXTTalker = nxtTalker;
@@ -21,13 +21,19 @@ public class BluetoothCommunication {
 
 
     public void openClaw() {
-        if (false) {
+        if (closed) {
+            closed = false;
             Log.i("CLAW", "CLAWING OPEN");
+            this.stop();
             mNXTTalker.motor(1, (byte) 20, false, false);
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    boolean closed = false;
 
     public void closeClaw() {
         if (!closed) {
@@ -35,6 +41,11 @@ public class BluetoothCommunication {
             this.stop();
             mNXTTalker.motor(1, (byte) -20, false, false);
             closed = true;
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

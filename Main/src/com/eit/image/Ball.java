@@ -1,16 +1,16 @@
 package com.eit.image;
 
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+
 import java.util.ArrayList;
 
 public class Ball extends VisualObject {
-    public static double DISTANCE_THRESHOLD = 100;
     public static double RADIUS_THRESHOLD = 100;
 
-    public static final int RED = 0;
-    public static final int GREEN = 1;
-    public static final int BLUE = 2;
-
-    public int matches = 0;
+    protected int radius;
 
     public Ball(int x, int y, int radius, int type) {
         super(x, y, type);
@@ -21,32 +21,34 @@ public class Ball extends VisualObject {
      * @return Value indicating distance, Values lower than 0 means object is inside claw area
      */
     public double getDistance() {
-        return super.getDistance();
+        return 1 - radius / (480 * 0.4 / 2);
     }
 
-    public double match(Ball b) {
-        if (this.type != b.type) return 0;
+    @Override
+    public void draw(Mat img) {
+        Scalar color = new Scalar(0, 0, 0);
+        color.val[this.type] = 255;
+        Point pt = new Point(this.x, this.y);
+        Core.circle(img, pt, this.radius, color, 3);
+        Core.circle(img, pt, 3, new Scalar(255, 255, 255), 2);
+    }
 
-        double x = Math.abs(this.x - b.x);
-        double y = Math.abs(this.y - b.y);
-        double r = Math.abs(this.radius - b.radius);
-        if (x > DISTANCE_THRESHOLD || y > DISTANCE_THRESHOLD || r > RADIUS_THRESHOLD) return 0;
-        x = 1 - x / DISTANCE_THRESHOLD;
-        y = 1 - x / DISTANCE_THRESHOLD;
+    @Override
+    public double match(VisualObject object) {
+        double match = super.match(object);
+        if (match == 0) return 0;
+
+        double r = Math.abs(this.radius - ((Ball) object).radius);
+        if (r > RADIUS_THRESHOLD) return 0;
         r = 1 - r / RADIUS_THRESHOLD;
 
-        return (x + y + r) / 3.0;
+        return nextAvg(match, r, 3);
     }
 
-    public void merge(Ball ball) {
-        matches += 1 + ball.matches;
-        x = nextAvg(x, ball.x);
-        y = nextAvg(y, ball.y);
-        radius = nextAvg(radius, ball.radius);
-    }
-
-    private int nextAvg(int avg, int newNumber) {
-        return (int) (((matches - 1) * avg + newNumber) / (matches * 1.0));
+    @Override
+    public void merge(VisualObject object) {
+        super.merge(object);
+        radius = nextAvg(radius, ((Ball) object).radius);
     }
 
 

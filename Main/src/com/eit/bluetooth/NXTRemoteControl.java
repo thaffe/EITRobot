@@ -126,7 +126,7 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
         imgP.create();
 
         robotController = new RobotController(imgP,btCommunicator,this);
-        robotController.start();
+//        robotController.start();
     }
 
     private void setupUI() {
@@ -180,8 +180,8 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
     }
 
     private void findBrick() {
-//        Intent intent = new Intent(this, ChooseDeviceActivity.class);
-//        startActivityForResult(intent, REQUEST_CONNECT_DEVICE);
+        Intent intent = new Intent(this, ChooseDeviceActivity.class);
+        startActivityForResult(intent, REQUEST_CONNECT_DEVICE);
     }
 
     @Override

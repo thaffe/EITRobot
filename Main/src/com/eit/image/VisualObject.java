@@ -1,11 +1,17 @@
 package com.eit.image;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
+import org.opencv.core.Mat;
 
-public class VisualObject {
+public abstract class VisualObject {
+    public static double DISTANCE_THRESHOLD = 100;
+    public static final int RED = 0;
+    public static final int GREEN = 1;
+    public static final int BLUE = 2;
+
     protected int type;
-    protected int x,y,radius;
+    protected int x, y;
+
+    public int matches = 0;
 
     public VisualObject(int x, int y, int type) {
         this.x = x;
@@ -18,7 +24,7 @@ public class VisualObject {
      * 0 represents in the middle, Negative number represents left. Positive number represents right.
      */
     public double getHorizontalOffset() {
-        return 2.0*y/ImageProcessing.CAMERA_HEIGHT - 1;
+        return 2.0 * y / ImageProcessing.CAMERA_HEIGHT - 1;
     }
 
     /**
@@ -31,8 +37,34 @@ public class VisualObject {
     /**
      * @return Value indicating distance.
      */
-    public double getDistance() {
-        return 1 - radius/(480*0.4/2);
-//        return 1.0*x/ImageProcessing.CAMERA_WIDTH -0.25;
+
+    public abstract double getDistance();
+
+    public abstract void draw(Mat img);
+
+    public double match(VisualObject object) {
+        if (this.type != object.type) return 0;
+
+        double x = Math.abs(this.x - object.x);
+        double y = Math.abs(this.y - object.y);
+        if (x > DISTANCE_THRESHOLD || y > DISTANCE_THRESHOLD) return 0;
+        x = 1 - x / DISTANCE_THRESHOLD;
+        y = 1 - x / DISTANCE_THRESHOLD;
+
+        return (x + y) / 2.0;
+    }
+
+    public void merge(VisualObject object) {
+        matches += 1 + object.matches;
+        x = nextAvg(x, object.x);
+        y = nextAvg(y, object.y);
+    }
+
+    protected int nextAvg(int avg, int newNumber){
+        return (int)this.nextAvg(avg,newNumber,matches);
+    }
+
+    protected double nextAvg(double avg, double newNumber, int count) {
+        return ((count - 1) * avg + newNumber) / (count * 1.0);
     }
 }
