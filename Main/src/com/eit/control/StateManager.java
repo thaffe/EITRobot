@@ -70,8 +70,6 @@ public class StateManager implements ImageProcessListener {
                 undock();
                 break;
         }
-
-        step();
     }
 
     private void undock() {

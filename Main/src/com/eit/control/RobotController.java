@@ -15,7 +15,7 @@ import com.eit.image.ImageProcessListener;
 /**
  * Created by Lysaker on 05.03.14.
  */
-public class RobotController{// implements ImageProcessListener {
+public class RobotController implements Runnable {
 
     private final StateManager stateManager;
     private final RobotHumanInteraction humanInteraction;
@@ -31,6 +31,14 @@ public class RobotController{// implements ImageProcessListener {
     }
 
     public void start() {
-       this.stateManager.step();
+        Thread thread = new Thread(this);
+        thread.run();
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            this.stateManager.step();
+        }
     }
 }
