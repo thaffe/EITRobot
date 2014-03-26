@@ -13,8 +13,8 @@ import java.util.Date;
 public class RobotCar {
     public final static int MAX_SPEED = -50;
     private static final int STEP_TIME = 500;
-    private static final double SEARCH_ACCELERATION = 0.01;
-    private static final long SEARCH_INSTRUCTION_INTERVAL = 100;
+    private static final double SEARCH_ACCELERATION = 0.04;
+    private static final long SEARCH_INSTRUCTION_INTERVAL = 40;
 
     private final BluetoothCommunication control;
 
@@ -45,15 +45,14 @@ public class RobotCar {
 
     public void step() {
         if (searchMode) {
-            Log.i(StateManager.TAG, "SEARCHING");
-            long duration = System.currentTimeMillis() - this.searchModeStart;
+            long now = System.currentTimeMillis();
+            long duration = now - this.searchModeStart;
             double durationSeconds = (duration / 1000);
-            float radius = (float)Math.min(durationSeconds * SEARCH_ACCELERATION  + 0.2, 1) * 3;
+            float radius = (float)Math.min(durationSeconds * SEARCH_ACCELERATION  + 0.2, 1);
 
-            if (this.searchModeLastCall < this.searchModeStart - SEARCH_INSTRUCTION_INTERVAL) {
-                Log.i(StateManager.TAG, "UPDATE_MOVE");
-                move(radius, -radius);
-                this.searchModeLastCall = System.currentTimeMillis();
+            if (now > this.searchModeLastCall + SEARCH_INSTRUCTION_INTERVAL) {
+                move(radius, radius * 0.5f);
+                this.searchModeLastCall = now;
             }
         } else {
 

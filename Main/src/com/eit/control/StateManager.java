@@ -50,28 +50,36 @@ public class StateManager implements ImageProcessListener {
 
         if (robotCar.isClawOpen()) {
             if (ball == null) {
+                Log.i(TAG, "STATE" + "Locate ball");
                 robotCar.setSearchMode(true);
             } else {
                 robotCar.setSearchMode(false);
 
                 if (moveTowards(ball)) {
+                    Log.i(TAG, "STATE" + "Catch ball");
                     robotCar.closeClaw();
+                } else {
+                    Log.i(TAG, "STATE" + "Reach ball");
                 }
             }
         } else {
             if (box == null) {
+                Log.i(TAG, "STATE" + "Search box");
                 robotCar.setSearchMode(true);
             } else {
                 robotCar.setSearchMode(false);
 
                 if (robotCar.isSensorPressed()) {
+                    Log.i(TAG, "STATE" + "Sensor pressed!");
                     robotCar.openClaw();
                     robotCar.setStepMode(true);
                     robotCar.forward(-1);
                     robotCar.rotate(1);
                     robotCar.setStepMode(false);
                 } else if (moveTowards(box)) {
-
+                    Log.i(TAG, "STATE" + "???");
+                } else {
+                    Log.i(TAG, "STATE" + "Moving to box");
                 }
             }
         }
