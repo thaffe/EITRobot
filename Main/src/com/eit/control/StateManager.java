@@ -20,7 +20,7 @@ public class StateManager implements ImageProcessListener {
     private VisualObject ball;
     private VisualObject box;
 
-    private BehaviorState state;
+    // private BehaviorState state;
 
     private boolean isBallTracking;
     private boolean isBoxTracking;
@@ -31,11 +31,11 @@ public class StateManager implements ImageProcessListener {
         this.eye = eye;
         this.eye.addListener(this);
         this.humanInteraction = humanInteraction;
-        this.state = BehaviorState.LOCATE_BALL;
+        // this.state = BehaviorState.LOCATE_BALL;
     }
 
     public void step() {
-        Log.i(TAG, "STATE" + state.name());
+        //Log.i(TAG, "STATE" + state.name());
 
         robotCar.step();
 
@@ -47,88 +47,33 @@ public class StateManager implements ImageProcessListener {
             startBoxTracking();
         }
 
-        switch (state) {
-            case LOCATE_BALL:
-                locateBall();
-                break;
-            case REACH_BALL:
-                reachBall();
-                break;
-            case PICK_UP:
-                pickupBall();
-                break;
-            case LOCATE_BOX:
-                locateBox();
-                break;
-            case DOCK:
-                reachBox();
-                break;
-            case RELEASE_BALL:
-                releaseBall();
-                break;
-            case UNDOCK:
-                undock();
-                break;
-        }
-    }
 
-    private void undock() {
-        robotCar.setStepMode(true);
-        robotCar.forward(-1);
-        robotCar.rotate(1);
-        robotCar.setStepMode(false);
+        if (robotCar.isClawOpen()) {
+            if (ball == null) {
+                robotCar.setSearchMode(true);
+            } else {
+                robotCar.setSearchMode(false);
 
-        state = BehaviorState.LOCATE_BALL;
-
-    }
-
-    private void releaseBall() {
-        robotCar.openClaw();
-        state = BehaviorState.LOCATE_BALL;
-    }
-
-    private void pickupBall() {
-        robotCar.closeClaw();
-        this.state = BehaviorState.RELEASE_BALL;
-    }
-
-    private void locateBall() {
-        if (ball == null) {
-            robotCar.setSearchMode(true);
+                if (moveTowards(ball)) {
+                    robotCar.closeClaw();
+                }
+            }
         } else {
-            robotCar.setSearchMode(false);
-            speak("Ball found");
-            state = BehaviorState.REACH_BALL;
-        }
-    }
+            if (box == null) {
+                robotCar.setSearchMode(true);
+            } else {
+                robotCar.setSearchMode(false);
 
-    private void reachBall() {
-        if (ball == null) {
-            state = BehaviorState.LOCATE_BALL;
-        } else if (moveTowards(ball)) {
-            state = BehaviorState.PICK_UP;
-            Log.i(TAG, "IM HERE");
-        }
-    }
+                if (robotCar.isSensorPressed()) {
+                    robotCar.openClaw();
+                    robotCar.setStepMode(true);
+                    robotCar.forward(-1);
+                    robotCar.rotate(1);
+                    robotCar.setStepMode(false);
+                } else if (moveTowards(box)) {
 
-    private void locateBox() {
-        if (box == null) {
-            robotCar.setSearchMode(true);
-        } else {
-            speak("Box found");
-            robotCar.setSearchMode(false);
-            state = BehaviorState.DOCK;
-        }
-    }
-
-    private void reachBox() {
-        if (box == null) {
-            state = BehaviorState.LOCATE_BOX;
-        } else if (robotCar.isSensorPressed()) {
-            state = BehaviorState.RELEASE_BALL;
-            Log.i(TAG, "BALL RELEASE");
-        } else {
-            moveTowards(box);
+                }
+            }
         }
     }
 
@@ -136,8 +81,8 @@ public class StateManager implements ImageProcessListener {
         humanInteraction.speak(text);
     }
 
-    public static double getSigmoid(double x) {
-        return 2 / (1 + Math.exp(-(8 * x + 3))) - 1;
+    public static float getSigmoid(float x) {
+        return 2 / (1 + (float)Math.exp(-(8 * x + 3))) - 1;
     }
 
     /**

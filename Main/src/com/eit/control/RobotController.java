@@ -41,6 +41,11 @@ public class RobotController implements Runnable {
     public void run() {
         this.stateManager = new StateManager(control, eyeProcessing, humanInteraction);
         while (true) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             this.stateManager.step();
         }
     }

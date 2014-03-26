@@ -62,7 +62,7 @@ public class BluetoothCommunication {
         mNXTTalker.motors((byte) 0, (byte) 0, false, false);
     }
 
-    public void setSpeed(int l, int r) {
+    public void setSpeed(float l, float r) {
         mNXTTalker.motors((byte) l, (byte) r, false, false);
     }
 

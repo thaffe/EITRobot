@@ -25,24 +25,27 @@ public class RobotHumanInteraction implements Runnable {
         this.recognizer = new RobotSpeechRecognizer(context, this);
         this.audioManager = audioManager;
 
-        this.speech = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
-            public void onInit(int status) {
+        if (!TALK) {
+            this.speech = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+                public void onInit(int status) {
 
-                System.out.println("out- start init");
-                if (status == TextToSpeech.SUCCESS) {
-                    System.out.println("out- speak!");
-                    speech.setLanguage(Locale.US);
-                    speak("Where the hell am i?");
-                    speechInitiated = true;
-                    startRecognition();
-                } else {
-                    System.out.println("out- failed TTS init");
-                    throw new IllegalStateException("TTS not available");
+                    System.out.println("out- start init");
+                    if (status == TextToSpeech.SUCCESS) {
+                        System.out.println("out- speak!");
+                        speech.setLanguage(Locale.US);
+                        speak("Where the hell am i?");
+                        speechInitiated = true;
+                        startRecognition();
+                    } else {
+                        System.out.println("out- failed TTS init");
+                        throw new IllegalStateException("TTS not available");
+                    }
                 }
-            }
-        });
-        this.speech.setPitch(0.9f);
-        this.speech.setSpeechRate(0.9f);
+            });
+            this.speech.setPitch(0.9f);
+            this.speech.setSpeechRate(0.9f);
+        }
+
     }
 
     private void startRecognition() {

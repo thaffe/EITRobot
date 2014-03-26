@@ -155,11 +155,11 @@ public class NXTTalker {
         }
 
         //Action duration
-        data[10] = (byte) 360;
-        data[11] = (byte) (360 >> 8);
+        data[10] = (byte) 0;
+        data[11] = (byte) (0 >> 8);
 
-        data[24] = (byte) 360;
-        data[25] = (byte) (360 >> 8);
+        data[24] = (byte) 0;
+        data[25] = (byte) (0 >> 8);
 
         write(data);
     }
