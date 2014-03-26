@@ -13,7 +13,8 @@ import java.util.Locale;
  * Created by Lysaker on 05.03.14.
  */
 public class RobotHumanInteraction implements Runnable {
-    private static final boolean TALK = false;
+    private static final boolean TALK = true;
+    private static final boolean RECOGNITIION = false;
 
     private TextToSpeech speech;
     private boolean speechInitiated = false;
@@ -33,7 +34,7 @@ public class RobotHumanInteraction implements Runnable {
                     speech.setLanguage(Locale.US);
                     speak("Where the hell am i?");
                     speechInitiated = true;
-                    recognizer.startRecognition();
+                    startRecognition();
                 } else {
                     System.out.println("out- failed TTS init");
                     throw new IllegalStateException("TTS not available");
@@ -42,6 +43,12 @@ public class RobotHumanInteraction implements Runnable {
         });
         this.speech.setPitch(0.9f);
         this.speech.setSpeechRate(0.9f);
+    }
+
+    private void startRecognition() {
+        if (RECOGNITIION) {
+            recognizer.startRecognition();
+        }
     }
 
     private void onRecognition(ArrayList<String> items) {
@@ -56,7 +63,7 @@ public class RobotHumanInteraction implements Runnable {
                 speak("You don\'t have any power here");
             }
         }
-        recognizer.startRecognition();
+        startRecognition();
     }
 
     private static boolean anyContains(ArrayList<String> items, String word) {

@@ -12,7 +12,8 @@ public class StateManager implements ImageProcessListener {
 
     private boolean positionChanged = true;
     private EyeProcessing eye;
-    private VisualObject ball, box;
+    private VisualObject ball;
+    private VisualObject box;
     private double radius;
 
     public final BluetoothCommunication control;
@@ -138,18 +139,16 @@ public class StateManager implements ImageProcessListener {
     private void reachBox() {
         if (positionChanged) {
             startBoxTracking();
+        } else if (box == null) {
+            state = BehaviorState.LOCATE_BOX;
+            radius = 0;
+            step();
+        } else if (control.isSensorPressed()) {
+            state = BehaviorState.RELEASE_BALL;
+            Log.i(TAG, "BALL RELEASE");
+            step();
         } else {
-            if (box == null) {
-                state = BehaviorState.LOCATE_BOX;
-                radius = 0;
-                step();
-            } else if (control.isSensorPressed()) {
-                state = BehaviorState.RELEASE_BALL;
-                Log.i(TAG, "BALL RELEASE");
-                step();
-            } else {
-                moveTowards(box);
-            }
+            moveTowards(box);
         }
     }
 
@@ -215,6 +214,7 @@ public class StateManager implements ImageProcessListener {
 
     private void startBoxTracking() {
         this.positionChanged = false;
+        Log.i(TAG, "START Box tracking");
         eye.startBoxDetection(ball.getType());
     }
 
