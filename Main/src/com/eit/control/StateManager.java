@@ -12,7 +12,7 @@ public class StateManager implements ImageProcessListener {
     private static final int UNDOCK_ROTATION = 500;
     private static final int SEARCH_STEP_TIME = 500;
 
-    public final BluetoothCommunication control;
+    private final BluetoothCommunication control;
     private final RobotHumanInteraction humanInteraction;
     private final EyeProcessing eye;
 
@@ -21,7 +21,7 @@ public class StateManager implements ImageProcessListener {
     private VisualObject box;
     private double radius;
 
-    public BehaviorState state;
+    private BehaviorState state;
     private boolean init = true;
     private static String TAG = "ROBOT";
 
