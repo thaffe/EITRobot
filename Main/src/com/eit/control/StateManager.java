@@ -7,27 +7,27 @@ import com.eit.image.*;
 import java.util.ArrayList;
 
 public class StateManager implements ImageProcessListener {
-    private final static int MAX_SPEED = -50;
+    public static final String TAG = "ROBOT";
     private static final int UNDOCK_BACK_STEP = 800;
     private static final int UNDOCK_ROTATION = 500;
     private static final int SEARCH_STEP_TIME = 500;
 
-    private final BluetoothCommunication control;
+    private final RobotCar robotCar;
     private final RobotHumanInteraction humanInteraction;
     private final EyeProcessing eye;
 
-    private boolean positionChanged = true;
+
     private VisualObject ball;
     private VisualObject box;
-    private double radius;
 
     private BehaviorState state;
-    private boolean init = true;
-    private static String TAG = "ROBOT";
+
+    private boolean isBallTracking;
+    private boolean isBoxTracking;
 
     public StateManager(BluetoothCommunication control, EyeProcessing eye,
                         RobotHumanInteraction humanInteraction) {
-        this.control = control;
+        this.robotCar = new RobotCar(control);
         this.eye = eye;
         this.eye.addListener(this);
         this.humanInteraction = humanInteraction;
@@ -36,6 +36,17 @@ public class StateManager implements ImageProcessListener {
 
     public void step() {
         Log.i(TAG, "STATE" + state.name());
+
+        robotCar.step();
+
+        if (!isBallTracking) {
+            startBallTracking();
+        }
+
+        if (!isBoxTracking) {
+            startBoxTracking();
+        }
+
         switch (state) {
             case LOCATE_BALL:
                 locateBall();
@@ -62,132 +73,77 @@ public class StateManager implements ImageProcessListener {
     }
 
     private void undock() {
-        move(-1, UNDOCK_BACK_STEP);
-        rotate(1, UNDOCK_ROTATION);
-        state = BehaviorState.LOCATE_BALL;
-        init = true;
+        robotCar.setStepMode(true);
+        robotCar.forward(-1);
+        robotCar.rotate(1);
+        robotCar.setStepMode(false);
 
+        state = BehaviorState.LOCATE_BALL;
         step();
     }
 
     private void releaseBall() {
-        control.openClaw();
+        robotCar.openClaw();
         state = BehaviorState.LOCATE_BALL;
-        positionChanged = true;
         step();
     }
 
     private void pickupBall() {
-        control.closeClaw();
+        robotCar.closeClaw();
         this.state = BehaviorState.RELEASE_BALL;
         step();
     }
 
     private void locateBall() {
-        if (init) {
-            speak("Locating balls");
-            init = false;
-            radius = 0;
-        }
-
-        if (positionChanged) {
-            startBallTracking();
+        if (ball == null) {
+            robotCar.setSearchMode(true);
         } else {
-            if (ball == null) {
-                searchStep();
-            } else {
-                speak("Ball found");
-                state = BehaviorState.REACH_BALL;
-            }
-            step();
+            robotCar.setSearchMode(false);
+            speak("Ball found");
+            state = BehaviorState.REACH_BALL;
         }
+        step();
     }
 
     private void reachBall() {
-        if (positionChanged) {
-            startBallTracking();
-        } else {
-            if (ball == null) {
-                state = BehaviorState.LOCATE_BALL;
-                radius = 0;
-            } else if (moveTowards(ball)) {
-                state = BehaviorState.PICK_UP;
-                Log.i(TAG, "IM HERE");
-            }
-            step();
+        if (ball == null) {
+            state = BehaviorState.LOCATE_BALL;
+        } else if (moveTowards(ball)) {
+            state = BehaviorState.PICK_UP;
+            Log.i(TAG, "IM HERE");
         }
+        step();
     }
 
     private void locateBox() {
-        if (init) {
-            speak("Locating box");
-            init = false;
-            radius = 0;
-        }
-
-        if (positionChanged) {
-            startBoxTracking();
+        if (box == null) {
+            robotCar.setSearchMode(true);
         } else {
-            if (box == null) {
-                searchStep();
-            } else {
-                speak("Box found");
-                state = BehaviorState.DOCK;
-            }
-            step();
+            speak("Box found");
+            robotCar.setSearchMode(false);
+            state = BehaviorState.DOCK;
         }
+        step();
     }
 
     private void reachBox() {
-        if (positionChanged) {
-            startBoxTracking();
-        } else if (box == null) {
+        if (box == null) {
             state = BehaviorState.LOCATE_BOX;
-            radius = 0;
-            step();
-        } else if (control.isSensorPressed()) {
+        } else if (robotCar.isSensorPressed()) {
             state = BehaviorState.RELEASE_BALL;
             Log.i(TAG, "BALL RELEASE");
-            step();
         } else {
             moveTowards(box);
         }
+
+        step();
     }
 
     private void speak(String text) {
         humanInteraction.speak(text);
     }
 
-    private void setSpeed(double percentL, double percentR) {
-        Log.i(TAG, String.format("SPEED L:%f  R:%f", percentL * MAX_SPEED, percentR * MAX_SPEED));
-        control.setSpeed((int) (percentL * MAX_SPEED), (int) (percentR * MAX_SPEED));
-        positionChanged = true;
-    }
-
-    private void move(double percentL, double percentR, int time) {
-        setSpeed(percentL, percentR);
-        try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        control.stop();
-    }
-
-    private void rotate(double rotation, int time) {
-        move(-rotation, rotation, time);
-    }
-
-    private void move(double power, int time) {
-        move(power, power, time);
-    }
-
-    private void searchStep() {
-        move(radius, 1, SEARCH_STEP_TIME);
-        radius += 0.01;
-    }
-
-    public double getSigmoid(double x) {
+    public static double getSigmoid(double x) {
         return 2 / (1 + Math.exp(-(8 * x + 3))) - 1;
     }
 
@@ -199,33 +155,29 @@ public class StateManager implements ImageProcessListener {
      */
     private boolean moveTowards(VisualObject object) {
         double distance = object.getDistance();
-        if (distance <= 0) return true;
-
-        double offset = object.getHorizontalOffset();
-        // double left = Math.min(2.0 * offset + 1,1);
-        // double right = Math.min(-2.0 * offset +1,1);
-        double x = (offset + 2 * (1 - distance)) / 3;
-        double left = getSigmoid(x);
-        double right = getSigmoid(-x);
-        Log.i(TAG, String.format("SUPER: L:%f, R:%f of:%f", left, right, offset));
-
-        double deltaTurn = 2 - Math.abs(left - right);
-        double time = 200 * (2 * distance + deltaTurn / 3.0 + 0.2);
-        move(left, right, (int) time);
-
-        return false;
+        if (distance <= 0) {
+            return true;
+        } else {
+            robotCar.moveTowards(object);
+            return false;
+        }
     }
 
-    private void startBallTracking() {
-        this.positionChanged = false;
-        Log.i(TAG, "START Ball tracking");
+    public void startBallTracking() {
+        //Log.i(TAG, "START Ball tracking");
+        this.isBallTracking = true;
         eye.startBallDetection();
     }
 
-    private void startBoxTracking() {
-        this.positionChanged = false;
-        Log.i(TAG, "START Box tracking");
-        eye.startBoxDetection(ball.getType());
+    public void startBoxTracking() {
+        //Log.i(TAG, "START Box tracking");
+
+        if (ball != null) {
+            this.isBoxTracking = true;
+            eye.startBoxDetection(ball.getType());
+        } else {
+
+        }
     }
 
     @Override
@@ -236,12 +188,12 @@ public class StateManager implements ImageProcessListener {
         else {
             Log.i(TAG, "BALL No ball found");
         }
-        step();
+        this.isBallTracking = false;
     }
 
     @Override
     public void onBoxDetect(VisualObject box) {
         this.box = box;
-        step();
+        this.isBoxTracking = false;
     }
 }
