@@ -22,10 +22,7 @@ public class RobotCar {
     private double rightPower;
 
     private boolean clawOpen;
-    private boolean stepMode = false;
-
-    //private double radius;
-    private boolean positionChanged;
+    private boolean stepMode;
 
     private boolean searchMode;
     private long searchModeStart;
@@ -34,7 +31,6 @@ public class RobotCar {
     public RobotCar(BluetoothCommunication control) {
         this.control = control;
         this.clawOpen = true;
-        this.positionChanged = true;
     }
 
     public void setSearchMode(boolean enabled) {

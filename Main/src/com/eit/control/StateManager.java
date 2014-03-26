@@ -70,6 +70,8 @@ public class StateManager implements ImageProcessListener {
                 undock();
                 break;
         }
+
+        step();
     }
 
     private void undock() {
@@ -79,19 +81,17 @@ public class StateManager implements ImageProcessListener {
         robotCar.setStepMode(false);
 
         state = BehaviorState.LOCATE_BALL;
-        step();
+
     }
 
     private void releaseBall() {
         robotCar.openClaw();
         state = BehaviorState.LOCATE_BALL;
-        step();
     }
 
     private void pickupBall() {
         robotCar.closeClaw();
         this.state = BehaviorState.RELEASE_BALL;
-        step();
     }
 
     private void locateBall() {
@@ -102,7 +102,6 @@ public class StateManager implements ImageProcessListener {
             speak("Ball found");
             state = BehaviorState.REACH_BALL;
         }
-        step();
     }
 
     private void reachBall() {
@@ -112,7 +111,6 @@ public class StateManager implements ImageProcessListener {
             state = BehaviorState.PICK_UP;
             Log.i(TAG, "IM HERE");
         }
-        step();
     }
 
     private void locateBox() {
@@ -123,7 +121,6 @@ public class StateManager implements ImageProcessListener {
             robotCar.setSearchMode(false);
             state = BehaviorState.DOCK;
         }
-        step();
     }
 
     private void reachBox() {
@@ -135,8 +132,6 @@ public class StateManager implements ImageProcessListener {
         } else {
             moveTowards(box);
         }
-
-        step();
     }
 
     private void speak(String text) {
