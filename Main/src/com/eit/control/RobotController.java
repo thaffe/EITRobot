@@ -17,17 +17,19 @@ import com.eit.image.ImageProcessListener;
  */
 public class RobotController implements Runnable {
 
-    private final StateManager stateManager;
+    private StateManager stateManager;
     private final RobotHumanInteraction humanInteraction;
-
+    private final EyeProcessing eyeProcessing;
+    private final BluetoothCommunication control;
 
     public RobotController(EyeProcessing eyeProcessing, BluetoothCommunication control, Context context) {
 
+        this.eyeProcessing = eyeProcessing;
+        this.control = control;
         AudioManager audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
         SensorManager sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
 
         this.humanInteraction = new RobotHumanInteraction(context, audioManager, sensorManager);
-        this.stateManager = new StateManager(control, eyeProcessing, humanInteraction);
     }
 
     public void start() {
@@ -37,6 +39,7 @@ public class RobotController implements Runnable {
 
     @Override
     public void run() {
+        this.stateManager = new StateManager(control, eyeProcessing, humanInteraction);
         while (true) {
             this.stateManager.step();
         }
