@@ -13,7 +13,7 @@ import java.util.Locale;
  * Created by Lysaker on 05.03.14.
  */
 public class RobotHumanInteraction implements Runnable {
-    private static final boolean TALK = true;
+    private static final boolean TALK = false;
     private static final boolean RECOGNITIION = false;
 
     private TextToSpeech speech;
