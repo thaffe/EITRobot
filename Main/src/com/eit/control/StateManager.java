@@ -219,7 +219,7 @@ public class StateManager implements ImageProcessListener {
     }
 
     @Override
-    public void OnBallDetect(VisualObject ball) {
+    public void onBallDetect(VisualObject ball) {
         this.ball = ball;
         if (ball != null)
             Log.i(TAG, String.format("BALL Dist:%f Offset:%f", ball.getDistance(), ball.getHorizontalOffset()));
@@ -230,7 +230,7 @@ public class StateManager implements ImageProcessListener {
     }
 
     @Override
-    public void OnBoxDetect(VisualObject box) {
+    public void onBoxDetect(VisualObject box) {
         this.box = box;
         step();
     }

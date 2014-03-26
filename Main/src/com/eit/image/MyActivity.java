@@ -72,7 +72,7 @@ public class MyActivity extends Activity implements ImageProcessListener{
     }
 
     @Override
-    public void OnBallDetect(VisualObject obj) {
+    public void onBallDetect(VisualObject obj) {
         if(obj != null)
             Log.i(ImageProcessing.TAG,String.format("Hoffset:%f    Distance:%f", obj.getHorizontalOffset(), obj.getDistance())); 
     }
@@ -84,7 +84,7 @@ public class MyActivity extends Activity implements ImageProcessListener{
     }
 
     @Override
-    public void OnBoxDetect(VisualObject obj) {
+    public void onBoxDetect(VisualObject obj) {
         if(obj != null)
             Log.i(ImageProcessing.TAG,String.format("Hoffset:%f    Distance:%f",obj.getHorizontalOffset(), obj.getDistance()));
     }

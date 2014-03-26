@@ -216,14 +216,14 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     public void notifyListenersBalls(VisualObject object) {
         this.closestBall = object;
         for (ImageProcessListener listener : listeners) {
-            listener.OnBallDetect(object);
+            listener.onBallDetect(object);
         }
     }
 
     public void notifyListenersBoxes(VisualObject object) {
         this.closestBox = object;
         for (ImageProcessListener listener : listeners) {
-            listener.OnBoxDetect(object);
+            listener.onBoxDetect(object);
         }
     }
 
