@@ -1,6 +1,7 @@
 package com.eit.image;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 
 import java.util.ArrayList;
 
@@ -8,7 +9,7 @@ public abstract class VisualObject {
     public static double DISTANCE_THRESHOLD = 100;
     public static final int RED = 0;
     public static final int GREEN = 1;
-    public static final int BLUE = 2;
+    public static final int BLUE = 1;
 
     protected int type;
     protected int x, y;
@@ -51,7 +52,7 @@ public abstract class VisualObject {
         double y = Math.abs(this.y - object.y);
         if (x > DISTANCE_THRESHOLD || y > DISTANCE_THRESHOLD) return 0;
         x = 1 - x / DISTANCE_THRESHOLD;
-        y = 1 - x / DISTANCE_THRESHOLD;
+        y = 1 - y/ DISTANCE_THRESHOLD;
 
         return (x + y) / 2.0;
     }
@@ -87,5 +88,9 @@ public abstract class VisualObject {
 
         }
         return closestObj;
+    }
+
+    public Scalar getColor(){
+        return new Scalar(type == RED ? 255: 0, 0, type==BLUE ? 255:0);
     }
 }

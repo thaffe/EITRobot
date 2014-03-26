@@ -28,10 +28,10 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     private boolean doLocate, findBalls;
 
     private ArrayList<ImageProcessListener> listeners = new ArrayList<ImageProcessListener>();
-
+    private int findColor = 0;
     private LinkedList<ImageProcess> activeThreads, inactiveThreads;
 
-    private VisualObject closestBall, closestBox;
+    public VisualObject closestBall, closestBox;
 
     public ImageProcessing(Activity activity) {
         this.activeThreads = new LinkedList<ImageProcess>();
@@ -104,7 +104,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         if (findBalls)
             process.startBallProcess(rgb);
         else
-            process.startBoxProcess(rgb, 0);
+            process.startBoxProcess(rgb, findColor);
         activeThreads.add(process);
     }
 
@@ -200,6 +200,7 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     public void startBoxDetection(int color) {
         doLocate = true;
         findBalls = false;
+        findColor = color;
     }
 
     @Override
@@ -228,4 +229,6 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     }
 
     public native ArrayList<VisualObject> FindFeatures(long matAddrRgba, int color, int type, int test);
+
+    public native void SetColor(int colorIndex, int maxColor, int index, int value);
 }

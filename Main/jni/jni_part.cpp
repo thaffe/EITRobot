@@ -8,11 +8,13 @@
 #define LOG_TAG "ROBOT"
 #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
 #define PI 3.14159265359
+#define RECT 1
+#define CIRCLE 0
 
 using namespace std;
 using namespace cv;
 
-int structSize = 9;
+int structSize = 12;
 Scalar minColors [] = {Scalar(0,90,100) , Scalar(110, 120, 10)};
 Scalar maxColors [] = {Scalar(10,255,255), Scalar(130, 255, 200)};
 
@@ -44,17 +46,13 @@ extern "C" {
 
      erode(thresh, thresh, element );
      dilate(thresh, thresh, element );
-     blur( thresh, thresh, Size(3,3) );
+     blur( thresh, thresh, Size(5,5) );
     // cvtColor(thresh, mRgb, CV_GRAY2RGB);
 
      vector<vector<Point> > contours;
      vector<Vec4i> hierarchy;
      
      findContours(thresh, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-
-
-      int bestIndex = -1; 
-      int bestSize = -1;
 
       LOGD("C++ Process started");
       if(!contours.size()) return NULL;
@@ -67,7 +65,7 @@ extern "C" {
       
       if(type == 1){
          cls = env->FindClass("com/eit/image/CollectionBox");
-         constructor = env->GetMethodID(cls, "<init>", "(IIII)V");
+         constructor = env->GetMethodID(cls, "<init>", "(IIIII)V");
       }else{
          cls = env->FindClass("com/eit/image/Ball");
          constructor = env->GetMethodID(cls, "<init>", "(IIII)V");
@@ -87,10 +85,12 @@ extern "C" {
      vector<float>radius( contours.size() );
      vector<int>shapeType(contours.size());
      //vector<double>match(contours.size());
+
+     // vector<Point>rect(4);
      for( int i = 0; i < contours.size(); i++ )
       { 
 
-         approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+         approxPolyDP( Mat(contours[i]), contours_poly[i], type == 1 ? 3 : 3, true );
          // if(test && i == 0){
          //    shape = contours_poly[i];
          //    hasShape = true;
@@ -102,34 +102,52 @@ extern "C" {
          boundRect[i] = boundingRect( Mat(contours_poly[i]) );
          minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
 
-         double circleArea = (2*radius[i]) * (2*radius[i]);
+         double circleArea = PI*radius[i]*radius[i];//(2*radius[i]) * (2*radius[i]);
          double rectArea = boundRect[i].area();
+         double polyArea = contourArea(contours_poly[i]);
+         double deltaCircle = abs(circleArea-polyArea);
+         double deltaRect = abs(rectArea-polyArea)*1.2;
 
-         if(circleArea > rectArea){
-            if(contours_poly[i].size() < 8)
-               shapeType[i] = 1;
-            else
-               shapeType[i] = 0;
+
+         // // vector<Point> circle(contours_poly.size());
+         // for(int j = 0; j < circle.size(); j++){
+         //    double angle = PI/ circle.size()*j;
+         //    circle[j] = Point(center[i].x+radius[i]*cos(angle), center[i].y + radius[i]*sin(angle));
+         // }
+         
+         // rect[0] = Point(boundRect[i].x, boundRect[i].y);
+         // rect[1] = Point(boundRect[i].x + boundRect[i].width, boundRect[i].y);
+         // rect[2] = Point(boundRect[i].x + boundRect[i].width, boundRect[i].y+  boundRect[i].height);
+         // rect[3] = Point(boundRect[i].x, boundRect[i].y+  boundRect[i].height);
+         // //RotatedRect rect = minAreaRect(contours_poly[i]);
+         // double matchRect = matchShapes(contours_poly[i], rect, CV_CONTOURS_MATCH_I3, 0.0);
+         // double matchCircle = matchShapes(contours_poly[i], circle, CV_CONTOURS_MATCH_I1 , 0.0);
+         if(type == 0){
+            if(deltaRect < deltaCircle){
+               shapeType[i] = RECT;
+            }else{
+               shapeType[i] = CIRCLE;
+            }    
          }else{
-            shapeType[i] = 0;
+            if(deltaRect < deltaCircle){
+               shapeType[i] = RECT;
+            }else{
+               shapeType[i] = CIRCLE;
+            }   
          }
+         
 
          LOGD(isContourConvex(contours_poly[i]) ? "Is Convex" : "NOPE");
-         if(shapeType[i] == type && isContourConvex(contours_poly[i])){
+         if(shapeType[i] == type){
             jobject obj;
-            if(type == 1)
-               obj = env->NewObject(cls, constructor,(int)center[i].x, (int)center[i].y, (int)boundRect[i].width, (int)boundRect[i].height,(int)type);
-            else
-               obj = env->NewObject(cls, constructor,(int)center[i].x, (int)center[i].y, (int)radius[i],(int)type);
+            if(type == 1){
+               Point tl = boundRect[i].tl();
+               Point br = boundRect[i].br();
+               obj = env->NewObject(cls, constructor,(int)tl.x,(int)tl.y, (int)br.x, (int)br.y, (int)color);
+            }else
+               obj = env->NewObject(cls, constructor,(int)center[i].x, (int)center[i].y, (int)radius[i],(int)color);
 
             env->CallObjectMethod(objArrayList, arrayListAdd, obj);
-         }
-
-
-         double size = shapeType[i] ? boundRect[i].size().height : radius[i];
-         if(bestSize < size){
-            bestIndex = i;
-            bestSize = size;
          }
 
       }
@@ -155,6 +173,14 @@ extern "C" {
          putText(mRgb, text, center[i], fontFace, fontScale,
                  Scalar::all(255), thickness, 8);
 
+         // Scalar color2(255,0,0);
+         // for(int j = 0; j < contours_poly[i].size(); j++){
+         //    double percent =  1.0 - 1.0*j/contours_poly[i].size();
+
+         //    circle(mRgb,contours_poly[i][j],2, color2, 1, 8,0);
+         //    color2.val[0] = 255 * percent;
+         //    color2.val[1] = 255 * (1-percent);
+         // }
          drawContours( mRgb, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
          
       }
@@ -162,6 +188,14 @@ extern "C" {
       
 
       return objArrayList;
+   }
+
+   JNIEXPORT void Java_com_eit_image_ImageProcessing_SetColor(JNIEnv* env, jobject obj, jint colorIndex, jint maxColor, jint index, jint value);
+
+   JNIEXPORT void JNICALL Java_com_eit_image_ImageProcessing_SetColor(JNIEnv* env, jobject obj, jint colorIndex, jint maxColor, jint index, jint value)
+   {
+      Scalar* color = maxColor == 1 ? &maxColors[colorIndex] : &minColors[colorIndex];
+      color->val[index] = value;
    }
 
 
@@ -179,4 +213,6 @@ extern "C" {
       
       return get_features(env,obj, addrRgba, color, type);
    }
+
+
 }

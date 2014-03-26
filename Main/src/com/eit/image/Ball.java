@@ -26,11 +26,11 @@ public class Ball extends VisualObject {
 
     @Override
     public void draw(Mat img) {
-        Scalar color = new Scalar(0, 0, 0);
-        color.val[this.type] = 255;
+
         Point pt = new Point(this.x, this.y);
-        Core.circle(img, pt, this.radius, color, 3);
+        Core.circle(img, pt, this.radius, getColor(), 3);
         Core.circle(img, pt, 3, new Scalar(255, 255, 255), 2);
+        Core.putText(img, String.format("D:%.3f  H:%.3f",getDistance(),getHorizontalOffset()), new Point(x,y), Core.FONT_HERSHEY_SIMPLEX,1, getColor());
     }
 
     @Override

@@ -51,7 +51,6 @@ public class MyActivity extends Activity implements ImageProcessListener{
     private boolean mReverseLR;
     private boolean mRegulateSpeed;
     private boolean mSynchronizeMotors;
-
     public MyActivity() {
         imgP = new ImageProcessing(this);
         imgP.addListener(this);

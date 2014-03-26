@@ -3,48 +3,21 @@ package com.eit.image;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 public class CollectionBox extends VisualObject implements Comparator<Point> {
 
-    private Point[] points;
     private final double distance;
+    private final Point tl, br;
 
-    public CollectionBox(ArrayList<Point> corners, int type) {
-        super(0, 0, type);
+    public CollectionBox(int tlx, int tly, int brx, int bry, int type) {
+        super(tlx + Math.abs(brx-tlx)/2, tly + Math.abs(bry - tly)/2, type);
+        tl = new Point(tlx,tly);
+        br = new Point(brx,bry);
 
-        for (Point p : corners) {
-            this.x += p.x;
-            this.y += p.y;
-        }
-
-        this.x /= corners.size();
-        this.y /= corners.size();
-
-
-        ArrayList<Point> top = new ArrayList<Point>(), bot = new ArrayList<Point>();
-
-        for (int i = 0; i < corners.size(); i++) {
-            Point p = corners.get(i);
-            if (p.y < this.y)
-                top.add(p);
-            else
-                bot.add(p);
-        }
-
-        Collections.sort(top, this);
-        Collections.sort(bot, this);
-
-        this.points = new Point[]{
-                top.get(0), top.get(top.size() - 1),
-                bot.get(0), bot.get(bot.size() - 1)
-        };
-
-        distance = 1 - 2*Math.abs(points[0].y - points[2].y) / ImageProcessing.CAMERA_WIDTH;
+        distance = 1 - 2.0 * (bry-tly) / ImageProcessing.CAMERA_HEIGHT;
     }
 
 
@@ -65,20 +38,10 @@ public class CollectionBox extends VisualObject implements Comparator<Point> {
     }
 
 
-    private void drawLines(Mat img, int... index) {
-        Point from = points[index[0]];
-
-        Scalar color = new Scalar(0, 0, 0);
-        color.val[this.type] = 255;
-        for (int i = 1; i < index.length; i++) {
-            Core.line(img, from, points[index[i]], color, 2);
-            from = points[index[i]];
-        }
-    }
-
     @Override
     public void draw(Mat img) {
-        drawLines(img, 0, 1, 3, 2, 0);
+        Core.rectangle(img, tl,br, getColor(), 3);
+        Core.putText(img, String.format("D:%.3f, H:%.3f",distance,getHorizontalOffset()), new Point(x,y), Core.FONT_HERSHEY_SIMPLEX,1, getColor());
     }
 
     @Override

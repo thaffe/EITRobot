@@ -82,9 +82,10 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
         if(view.getId() == R.id.locateBalls)
             imgP.startBallDetection();
         else if(view.getId() == R.id.locateRect){
-            imgP.startBoxDetection(VisualObject.RED);
+            imgP.startBoxDetection(imgP.closestBall != null ? imgP.closestBall.getType() : VisualObject.BLUE);
         }else{
-            imgP.DEBUG = true;
+            imgP.DEBUG = !imgP.DEBUG;
+            activity.findViewById(R.id.seekbars).setVisibility(imgP.DEBUG ? View.VISIBLE : View.GONE);
         }
 
         return false;
@@ -99,13 +100,13 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
 
         if (index < 6) {
             int value = numberPicker.getValue();
-//            if(index < 3){
-//                color.minHsv.val[index] = value;
-//                Log.i(ImageProcessing.TAG, "MIN COLOR CHANGE"+value);
-//            }else{
-//                color.maxHsv.val[index - 3] = value;
-//                Log.i(ImageProcessing.TAG, "MAX COLOR CHANGE"+value);
-//            }
+            if(index < 3){
+                imgP.SetColor(imgP.currentView, 0, index, value);
+                Log.i(ImageProcessing.TAG, "MIN COLOR CHANGE"+value);
+            }else{
+                imgP.SetColor(imgP.currentView, 1, index - 3, value);
+                Log.i(ImageProcessing.TAG, "MAX COLOR CHANGE"+value);
+            }
         }
     }
 }
