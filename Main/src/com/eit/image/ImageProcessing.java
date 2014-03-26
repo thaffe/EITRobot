@@ -16,8 +16,8 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     public static boolean DEBUG = false;
     public static double MATCH_THRESHOLD = 0.8;
     public static int CAMERA_WIDTH = 720, CAMERA_HEIGHT = 480;
-    public static int USE_FRAMES = 4;
-    public static int MATCHES_THRESHOLD = USE_FRAMES / 2;
+    public static int USE_FRAMES = 3;
+    public static int MATCHES_THRESHOLD = 2;
 
     public int currentView = 0;
     public static final String TAG = "IMAGEPROCESSING";
@@ -53,7 +53,6 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
                     break;
                 }
             }
-
         };
 
     }

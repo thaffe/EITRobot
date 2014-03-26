@@ -15,9 +15,8 @@ using namespace std;
 using namespace cv;
 
 int structSize = 12;
-Scalar minColors [] = {Scalar(0,90,100) , Scalar(110, 120, 10)};
-Scalar maxColors [] = {Scalar(10,255,255), Scalar(130, 255, 200)};
-
+Scalar minColors [] = {Scalar(0,90,100) , Scalar(110, 120, 5)};
+Scalar maxColors [] = {Scalar(10,255,255), Scalar(130, 255, 255)};
 
 inline Scalar getMax(int color)
 {
@@ -47,14 +46,14 @@ extern "C" {
      erode(thresh, thresh, element );
      dilate(thresh, thresh, element );
      blur( thresh, thresh, Size(5,5) );
-    // cvtColor(thresh, mRgb, CV_GRAY2RGB);
+    cvtColor(thresh, mRgb, CV_GRAY2RGB);
 
      vector<vector<Point> > contours;
      vector<Vec4i> hierarchy;
      
      findContours(thresh, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
-      LOGD("C++ Process started");
+//      LOGD("C++ Process started");
       if(!contours.size()) return NULL;
 
       jclass clsArrayList = env->FindClass("java/util/ArrayList");
@@ -100,13 +99,17 @@ extern "C" {
          // match[i] = matchShapes(contours_poly[i],shape,CV_CONTOURS_MATCH_I1,0.0);
 
          boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+         if(type == 0){
+            boundRect[i].width *= 1.3;
+            boundRect[i].height *= 1.3;
+         }
          minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
 
          double circleArea = PI*radius[i]*radius[i];//(2*radius[i]) * (2*radius[i]);
          double rectArea = boundRect[i].area();
          double polyArea = contourArea(contours_poly[i]);
          double deltaCircle = abs(circleArea-polyArea);
-         double deltaRect = abs(rectArea-polyArea)*1.2;
+         double deltaRect = abs(rectArea-polyArea);
 
 
          // // vector<Point> circle(contours_poly.size());
@@ -122,22 +125,22 @@ extern "C" {
          // //RotatedRect rect = minAreaRect(contours_poly[i]);
          // double matchRect = matchShapes(contours_poly[i], rect, CV_CONTOURS_MATCH_I3, 0.0);
          // double matchCircle = matchShapes(contours_poly[i], circle, CV_CONTOURS_MATCH_I1 , 0.0);
-         if(type == 0){
-            if(deltaRect < deltaCircle){
-               shapeType[i] = RECT;
-            }else{
-               shapeType[i] = CIRCLE;
-            }    
+         if(deltaRect < deltaCircle){
+            shapeType[i] = RECT;
          }else{
-            if(deltaRect < deltaCircle){
-               shapeType[i] = RECT;
-            }else{
-               shapeType[i] = CIRCLE;
-            }   
-         }
+            shapeType[i] = CIRCLE;
+         }    
+         // if(type == 0){
+         // }else{
+         //    if(deltaRect < deltaCircle){
+         //       shapeType[i] = RECT;
+         //    }else{
+         //       shapeType[i] = CIRCLE;
+         //    }   
+         // }
          
 
-         LOGD(isContourConvex(contours_poly[i]) ? "Is Convex" : "NOPE");
+       //  LOGD(isContourConvex(contours_poly[i]) ? "Is Convex" : "NOPE");
          if(shapeType[i] == type){
             jobject obj;
             if(type == 1){
@@ -189,6 +192,8 @@ extern "C" {
 
       return objArrayList;
    }
+
+
 
    JNIEXPORT void Java_com_eit_image_ImageProcessing_SetColor(JNIEnv* env, jobject obj, jint colorIndex, jint maxColor, jint index, jint value);
 

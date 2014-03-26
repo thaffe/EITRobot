@@ -34,7 +34,7 @@ public class RobotController implements Runnable {
 
     public void start() {
         Thread thread = new Thread(this);
-        thread.run();
+        thread.start();
     }
 
     @Override

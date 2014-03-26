@@ -84,8 +84,10 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
         else if(view.getId() == R.id.locateRect){
             imgP.startBoxDetection(imgP.closestBall != null ? imgP.closestBall.getType() : VisualObject.BLUE);
         }else{
-            imgP.DEBUG = !imgP.DEBUG;
-            activity.findViewById(R.id.seekbars).setVisibility(imgP.DEBUG ? View.VISIBLE : View.GONE);
+            if(motionEvent.getAction() == MotionEvent.ACTION_UP){
+                imgP.DEBUG = !imgP.DEBUG;
+                activity.findViewById(R.id.seekbars).setVisibility(imgP.DEBUG ? View.VISIBLE : View.GONE);
+            }
         }
 
         return false;
