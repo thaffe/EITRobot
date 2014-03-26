@@ -2,6 +2,8 @@ package com.eit.image;
 
 import org.opencv.core.Mat;
 
+import java.util.ArrayList;
+
 public abstract class VisualObject {
     public static double DISTANCE_THRESHOLD = 100;
     public static final int RED = 0;
@@ -66,5 +68,24 @@ public abstract class VisualObject {
 
     protected double nextAvg(double avg, double newNumber, int count) {
         return ((count - 1) * avg + newNumber) / (count * 1.0);
+    }
+
+
+    public static VisualObject getClosest(ArrayList<VisualObject> objects) {
+        if (objects.size() == 0) return null;
+
+        VisualObject closestObj = objects.get(0);
+        double distance = closestObj.getDistance();
+        for (int i = 1; i < objects.size(); i++) {
+            VisualObject obj = objects.get(i);
+
+            double newDist = obj.getDistance();
+            if (newDist < distance) {
+                distance = newDist;
+                closestObj = obj;
+            }
+
+        }
+        return closestObj;
     }
 }

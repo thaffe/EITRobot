@@ -20,11 +20,17 @@
                 android:layout_height="40dp"
                 android:text="Ball"
                 android:id="@+id/locateBalls"/>
+
         <Button
                 android:layout_width="60dp"
                 android:layout_height="40dp"
                 android:text="Rect"
                 android:id="@+id/locateRect"/>
+        <Button
+                android:layout_width="60dp"
+                android:layout_height="40dp"
+                android:text="Debug"
+                android:id="@+id/debugMOde"/>
         </LinearLayout>
 
         <Spinner

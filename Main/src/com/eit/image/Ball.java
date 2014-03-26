@@ -52,21 +52,5 @@ public class Ball extends VisualObject {
     }
 
 
-    public static Ball getClosest(ArrayList<Ball> balls) {
-        if (balls.size() == 0) return null;
 
-        Ball ball = balls.get(0);
-        double distance = ball.getDistance();
-        for (int i = 1; i < balls.size(); i++) {
-            Ball b = balls.get(i);
-            double newDist = b.getDistance();
-            if (newDist < distance) {
-                distance = newDist;
-                ball = b;
-            }
-
-        }
-
-        return ball;
-    }
 }

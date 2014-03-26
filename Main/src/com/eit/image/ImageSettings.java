@@ -20,7 +20,6 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
     Spinner spinner;
     ImageProcessing imgP;
     Activity activity;
-    ImageProcessing.ColorRange color;
 
 
     int[] colorPickerIds = new int[]{R.id.colormin_0,R.id.colormin_1,R.id.colormin_2,R.id.colormax_0,R.id.colormax_1,R.id.colormax_2};
@@ -31,6 +30,8 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
         this.activity = activity;
         locateBalls = (Button) activity.findViewById(R.id.locateBalls);
         locateBalls.setOnTouchListener(this);
+
+        ((Button)activity.findViewById(R.id.debugMOde)).setOnTouchListener(this);
 
         locateRect = (Button) activity.findViewById(R.id.locateRect);
         locateRect.setOnTouchListener(this);
@@ -60,12 +61,12 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
         imgP.currentView = i;
 
         if(i > 0){
-            color = ImageProcessing.colorRanges[i < 3 ? 0 : 1];
-            for (int j = 0; j < colorPickerIds.length; j++) {
-                NumberPicker np = (NumberPicker)activity.findViewById(colorPickerIds[j]);
-                double val = j < 3 ? color.minHsv.val[j] : color.maxHsv.val[j-3];
-                np.setValue((int)val);
-            }
+//            color = ImageProcessing.colorRanges[i < 3 ? 0 : 1];
+//            for (int j = 0; j < colorPickerIds.length; j++) {
+//                NumberPicker np = (NumberPicker)activity.findViewById(colorPickerIds[j]);
+//                double val = j < 3 ? color.minHsv.val[j] : color.maxHsv.val[j-3];
+//                np.setValue((int)val);
+//            }
 
         }
     }
@@ -80,8 +81,10 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
         Log.i(ImageProcessing.TAG, "START TO LOCATE BALLS");
         if(view.getId() == R.id.locateBalls)
             imgP.startBallDetection();
-        else{
-            imgP.startBoxDetection();
+        else if(view.getId() == R.id.locateRect){
+            imgP.startBoxDetection(VisualObject.RED);
+        }else{
+            imgP.DEBUG = true;
         }
 
         return false;
@@ -96,13 +99,13 @@ public class ImageSettings implements AdapterView.OnItemSelectedListener, View.O
 
         if (index < 6) {
             int value = numberPicker.getValue();
-            if(index < 3){
-                color.minHsv.val[index] = value;
-                Log.i(ImageProcessing.TAG, "MIN COLOR CHANGE"+value);
-            }else{
-                color.maxHsv.val[index - 3] = value;
-                Log.i(ImageProcessing.TAG, "MAX COLOR CHANGE"+value);
-            }
+//            if(index < 3){
+//                color.minHsv.val[index] = value;
+//                Log.i(ImageProcessing.TAG, "MIN COLOR CHANGE"+value);
+//            }else{
+//                color.maxHsv.val[index - 3] = value;
+//                Log.i(ImageProcessing.TAG, "MAX COLOR CHANGE"+value);
+//            }
         }
     }
 }

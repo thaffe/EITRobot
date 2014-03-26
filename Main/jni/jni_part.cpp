@@ -15,8 +15,7 @@ using namespace cv;
 int structSize = 9;
 Scalar minColors [] = {Scalar(0,90,100) , Scalar(110, 120, 10)};
 Scalar maxColors [] = {Scalar(10,255,255), Scalar(130, 255, 200)};
-//vector<Point> shape;
-bool hasShape = false;
+
 
 inline Scalar getMax(int color)
 {
@@ -29,9 +28,10 @@ inline Scalar getMin(int color)
 }
 
 
-jobject get_features(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type)
+extern "C" {
+   jobject get_features(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type)
 {
-   Mat& mRgb = *(Mat*)addrRgba;
+      Mat& mRgb = *(Mat*)addrRgba;
      Mat hsv;
 
      cvtColor(mRgb,hsv,CV_RGB2HSV);
@@ -56,24 +56,21 @@ jobject get_features(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint 
       int bestIndex = -1; 
       int bestSize = -1;
 
+      LOGD("C++ Process started");
       if(!contours.size()) return NULL;
-
-
-      jclass cls;
 
       jclass clsArrayList = env->FindClass("java/util/ArrayList");
       jmethodID constructor = env->GetMethodID(clsArrayList, "<init>", "()V");
       jobject objArrayList = env->NewObject(clsArrayList, constructor, "");
+      jclass cls;
       jmethodID arrayListAdd = env->GetMethodID(clsArrayList, "add", "(Ljava/lang/Object;)Z");
       
       if(type == 1){
          cls = env->FindClass("com/eit/image/CollectionBox");
          constructor = env->GetMethodID(cls, "<init>", "(IIII)V");
-         //obj = env->NewObject(cls, constructor,(int)center[bestIndex].x, (int)center[bestIndex].y, (int)bestSize,(int)bestSize);
       }else{
          cls = env->FindClass("com/eit/image/Ball");
          constructor = env->GetMethodID(cls, "<init>", "(IIII)V");
-         //obj = env->NewObject(cls, constructor,(int)center[bestIndex].x, (int)center[bestIndex].y, (int)bestSize,(int)type);
       }
 
       // vector<Point>shape(50);
@@ -93,7 +90,7 @@ jobject get_features(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint 
      for( int i = 0; i < contours.size(); i++ )
       { 
 
-         approxPolyDP( Mat(contours[i]), contours_poly[i], 5, true );
+         approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
          // if(test && i == 0){
          //    shape = contours_poly[i];
          //    hasShape = true;
@@ -165,9 +162,7 @@ jobject get_features(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint 
       
 
       return objArrayList;
-}
-
-extern "C" {
+   }
 
 
    JNIEXPORT jobject Java_com_eit_image_ImageProcessing_FindFeatures(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type, jint test);
@@ -181,6 +176,7 @@ extern "C" {
 
    JNIEXPORT jobject JNICALL Java_com_eit_image_ImageProcess_FindFeatures(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type)
    {
+      
       return get_features(env,obj, addrRgba, color, type);
    }
 }

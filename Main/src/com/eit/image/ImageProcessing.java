@@ -6,25 +6,19 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import com.eit.R;
 import org.opencv.android.*;
-import org.opencv.core.*;
-import org.opencv.imgproc.Imgproc;
+import org.opencv.core.Mat;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 
 public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListener2, EyeProcessing {
-    public static int CANNY_THRESHOLD = 500;
-    public static int ACCUMULATOR = 50;
+    public static boolean DEBUG = false;
     public static double MATCH_THRESHOLD = 0.8;
     public static int CAMERA_WIDTH = 720, CAMERA_HEIGHT = 480;
     public static int USE_FRAMES = 4;
     public static int MATCHES_THRESHOLD = USE_FRAMES / 2;
 
-    public static ColorRange[] colorRanges = new ColorRange[]{
-            new ColorRange(0, 90, 100, 10, 255, 255, Ball.RED),
-            new ColorRange(110, 120, 10, 130, 255, 200, Ball.BLUE)
-    };
     public int currentView = 0;
     public static final String TAG = "IMAGEPROCESSING";
     public JavaCameraView cameraView;
@@ -32,14 +26,12 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     private final Activity activity;
     private final BaseLoaderCallback loaderCallback;
     private boolean doLocate, findBalls;
-    private Mat hsv, threshold;
 
     private ArrayList<ImageProcessListener> listeners = new ArrayList<ImageProcessListener>();
-    private ArrayList<Ball> balls = new ArrayList<Ball>();
-    private ArrayList<CollectionBox> boxes = new ArrayList<CollectionBox>();
 
     private LinkedList<ImageProcess> activeThreads, inactiveThreads;
 
+    private VisualObject closestBall, closestBox;
 
     public ImageProcessing(Activity activity) {
         this.activeThreads = new LinkedList<ImageProcess>();
@@ -79,8 +71,6 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
 
     private void init() {
         cameraView.enableView();
-        hsv = new Mat(ImageProcessing.CAMERA_HEIGHT, ImageProcessing.CAMERA_WIDTH, CvType.CV_8UC4);
-        threshold = new Mat(hsv.height(), hsv.width(), CvType.CV_8UC1);
 
         while (inactiveThreads.size() < USE_FRAMES) {
             ImageProcess process = new ImageProcess();
@@ -111,10 +101,10 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
 
     public void startProcess(Mat rgb) {
         ImageProcess process = inactiveThreads.poll();
-        if(findBalls)
+        if (findBalls)
             process.startBallProcess(rgb);
         else
-            process.startBoxProcess(rgb,0);
+            process.startBoxProcess(rgb, 0);
         activeThreads.add(process);
     }
 
@@ -122,83 +112,63 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         Mat rgb = inputFrame.rgba();
-//        if (true) {
-//            if(doLocate)
-//                Log.i("ROBOT","LOCATE THIS SHIT");
-//
-//            ArrayList<VisualObject> rects = FindFeatures(rgb.getNativeObjAddr(), 1, 0, doLocate ? 1 : 0);
-//            if (rects != null) {
-//                for (VisualObject rect : rects) {
-//                    rect.draw(rgb);
-//                }
-//
-//            }
-//            doLocate = false;
-//            return rgb;
-//        }
+        if (DEBUG) {
+            ArrayList<VisualObject> rects = FindFeatures(rgb.getNativeObjAddr(), currentView, 0, doLocate ? 1 : 0);
+            if (rects != null) {
+                VisualObject v = VisualObject.getClosest(rects);
+                if(v!= null)
+                    v.draw(rgb);
+            }
+            return rgb;
+        }
 
 
         if (!doLocate || inactiveThreads.size() == 0) {
-//            for (Ball ball : balls) {
-//                ball.draw(rgb);
-//            }
-//
-//            for (CollectionBox box : boxes) {
-//                box.draw(rgb);
-//            }
+            if (closestBall != null) closestBall.draw(rgb);
+            if (closestBox != null) closestBox.draw(rgb);
         }
         if (!doLocate) {
-            return getImageView(rgb);
+            return rgb;
         }
 
         if (inactiveThreads.size() > 0) {
             startProcess(rgb);
         } else {
-            for (ImageProcess activeThread : activeThreads) if (!activeThread.isComplete()) return getImageView(rgb);
+            for (ImageProcess activeThread : activeThreads) if (!activeThread.isComplete()) return rgb;
 
             doLocate = false;
+            ArrayList<VisualObject> objects = retrieveObjects();
+            objects = mergeVisualObjects(objects);
 
-            if (findBalls) {
-                balls = retrieveBalls();
-                balls = mergeVisualObjects(balls);
-                notifyListenersBalls();
-            } else {
-                boxes = mergeVisualObjects(retrieveBoxes());
-                notifyListenersBoxes();
-            }
+            VisualObject closest = VisualObject.getClosest(objects);
+
+            if (findBalls) notifyListenersBalls(closest);
+            else notifyListenersBoxes(closest);
+
 
         }
 
-        return getImageView(rgb);
+        return rgb;
     }
 
-    public ArrayList<Ball> retrieveBalls() {
-        ArrayList<Ball> b = new ArrayList<Ball>();
+    public ArrayList<VisualObject> retrieveObjects() {
+        ArrayList<VisualObject> o = new ArrayList<VisualObject>();
         while (!activeThreads.isEmpty()) {
             ImageProcess process = activeThreads.poll();
             inactiveThreads.add(process);
-            b.addAll(process.getBalls());
+            o.addAll(process.getObjects());
         }
-        return b;
+        return o;
     }
 
-    public ArrayList<CollectionBox> retrieveBoxes() {
-        ArrayList<CollectionBox> boxes = new ArrayList<CollectionBox>();
-        while (!activeThreads.isEmpty()) {
-            ImageProcess process = activeThreads.poll();
-            inactiveThreads.add(process);
-            boxes.addAll(process.getBoxes());
-        }
-        return boxes;
-    }
 
-    public <T extends VisualObject> ArrayList<T> mergeVisualObjects(ArrayList<T> objects) {
-        ArrayList<T> matchedObj = new ArrayList<T>();
+    public ArrayList<VisualObject> mergeVisualObjects(ArrayList<VisualObject> objects) {
+        ArrayList<VisualObject> matchedObj = new ArrayList<VisualObject>();
 
-        for (T newObj : objects) {
+        for (VisualObject newObj : objects) {
             boolean matched = false;
 
-            for (T old : matchedObj) {
+            for (VisualObject old : matchedObj) {
                 if (old.match(newObj) > MATCH_THRESHOLD) {
                     old.merge(newObj);
                     matched = true;
@@ -226,23 +196,8 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         return matchedObj;
     }
 
-    private Mat getImageView(Mat rgb) {
-        Mat img, hsv = null;
-        if (currentView == 0) return rgb;
-
-        Imgproc.cvtColor(rgb, hsv, Imgproc.COLOR_RGB2HSV, 4);
-
-        if (currentView == 1 || currentView == 3) {
-            ColorRange c = colorRanges[currentView / 2];
-            Core.inRange(hsv, c.minHsv, c.maxHsv, threshold);
-            return threshold;
-        }
-
-        return rgb;
-    }
-
     @Override
-    public void startBoxDetection() {
+    public void startBoxDetection(int color) {
         doLocate = true;
         findBalls = false;
     }
@@ -258,32 +213,19 @@ public class ImageProcessing implements CameraBridgeViewBase.CvCameraViewListene
         this.listeners.add(listener);
     }
 
-    public void notifyListenersBalls() {
-        Ball ball = Ball.getClosest(balls);
+    public void notifyListenersBalls(VisualObject object) {
+        this.closestBall = object;
         for (ImageProcessListener listener : listeners) {
-            listener.OnBallDetect(balls);
+            listener.OnBallDetect(object);
         }
     }
 
-    public void notifyListenersBoxes() {
+    public void notifyListenersBoxes(VisualObject object) {
+        this.closestBox = object;
         for (ImageProcessListener listener : listeners) {
-            listener.OnBoxDetect(boxes);
+            listener.OnBoxDetect(object);
         }
     }
-
-    public static class ColorRange {
-        Scalar minHsv;
-        Scalar maxHsv;
-        int colorIndex;
-
-        public ColorRange(int minR, int minG, int minB, int maxR, int maxG, int maxB, int colorIndex) {
-            this.minHsv = new Scalar(minR, minG, minB, 0);
-            this.maxHsv = new Scalar(maxR, maxG, maxB, 0);
-            this.colorIndex = colorIndex;
-        }
-
-    }
-
 
     public native ArrayList<VisualObject> FindFeatures(long matAddrRgba, int color, int type, int test);
 }

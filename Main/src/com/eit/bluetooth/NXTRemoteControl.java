@@ -56,7 +56,7 @@ import com.eit.image.*;
 
 import java.util.ArrayList;
 
-public class NXTRemoteControl extends Activity implements ImageProcessListener {
+public class NXTRemoteControl extends Activity {
 
     private boolean NO_BT = false;
     ImageProcessing imgP;
@@ -325,15 +325,5 @@ public class NXTRemoteControl extends Activity implements ImageProcessListener {
         } else if (key.equals("PREF_REG_SYNC")) {
             mSynchronizeMotors = prefs.getBoolean("PREF_REG_SYNC", false);
         }
-    }
-
-    @Override
-    public void OnBallDetect(ArrayList<Ball> balls) {
-        Log.i(ImageProcessing.TAG, "FOUND SOME BALLS:" + balls.size());
-    }
-
-    @Override
-    public void OnBoxDetect(ArrayList<CollectionBox> boxes) {
-
     }
 }

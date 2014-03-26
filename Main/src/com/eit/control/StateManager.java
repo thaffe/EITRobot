@@ -220,12 +220,12 @@ public class StateManager implements ImageProcessListener {
 
     private void startBoxTracking() {
         this.positionChanged = false;
-        eye.startBoxDetection();
+        eye.startBoxDetection(ball.getType());
     }
 
     @Override
-    public void OnBallDetect(ArrayList<Ball> balls) {
-        ball = Ball.getClosest(balls);
+    public void OnBallDetect(VisualObject ball) {
+        this.ball = ball;
         if (ball != null)
             Log.i(TAG, String.format("BALL Dist:%f Offset:%f", ball.getDistance(), ball.getHorizontalOffset()));
         else {
@@ -235,8 +235,8 @@ public class StateManager implements ImageProcessListener {
     }
 
     @Override
-    public void OnBoxDetect(ArrayList<CollectionBox> boxes) {
-        box = CollectionBox.getClosest(boxes, ball.getType());
+    public void OnBoxDetect(VisualObject box) {
+        this.box = box;
         step();
     }
 }
