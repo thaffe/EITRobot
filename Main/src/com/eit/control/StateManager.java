@@ -7,17 +7,19 @@ import com.eit.image.*;
 import java.util.ArrayList;
 
 public class StateManager implements ImageProcessListener {
-    public final static int MAX_SPEED = -50;
+    private final static int MAX_SPEED = -50;
     private static final int UNDOCK_BACK_STEP = 800;
-
-    private boolean positionChanged = true;
-    private EyeProcessing eye;
-    private VisualObject ball;
-    private VisualObject box;
-    private double radius;
+    private static final int UNDOCK_ROTATION = 500;
+    private static final int SEARCH_STEP_TIME = 500;
 
     public final BluetoothCommunication control;
     private final RobotHumanInteraction humanInteraction;
+    private final EyeProcessing eye;
+
+    private boolean positionChanged = true;
+    private VisualObject ball;
+    private VisualObject box;
+    private double radius;
 
     public BehaviorState state;
     private boolean init = true;
@@ -60,8 +62,8 @@ public class StateManager implements ImageProcessListener {
     }
 
     private void undock() {
-        move(-1, -1, UNDOCK_BACK_STEP);
-        move(-1, 1, 500);
+        move(-1, UNDOCK_BACK_STEP);
+        rotate(1, UNDOCK_ROTATION);
         state = BehaviorState.LOCATE_BALL;
         init = true;
 
@@ -172,8 +174,16 @@ public class StateManager implements ImageProcessListener {
         control.stop();
     }
 
+    private void rotate(double rotation, int time) {
+        move(-rotation, rotation, time);
+    }
+
+    private void move(double power, int time) {
+        move(power, power, time);
+    }
+
     private void searchStep() {
-        move(radius, 1, 500);
+        move(radius, 1, SEARCH_STEP_TIME);
         radius += 0.01;
     }
 
