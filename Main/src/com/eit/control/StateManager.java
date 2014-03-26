@@ -8,11 +8,7 @@ import java.util.ArrayList;
 
 public class StateManager implements ImageProcessListener {
     public final static int MAX_SPEED = -50;
-    private static final boolean SKIP_BOX = true;
-    private static final double ROTATION_STEP = -1.5;
     private static final int UNDOCK_BACK_STEP = 800;
-    private static final int SPIN_STEP = 500;
-
 
     private boolean positionChanged = true;
     private EyeProcessing eye;
@@ -24,7 +20,6 @@ public class StateManager implements ImageProcessListener {
 
     public BehaviorState state;
     private boolean init = true;
-    private boolean naiveBoxRun = false;
     private static String TAG = "ROBOT";
 
     public StateManager(BluetoothCommunication control, EyeProcessing eye,
@@ -191,15 +186,15 @@ public class StateManager implements ImageProcessListener {
      * Returns true if reached object
      *
      * @param object
-     * @return
+     * @return If object is close enough to grab
      */
     private boolean moveTowards(VisualObject object) {
         double distance = object.getDistance();
         if (distance <= 0) return true;
 
         double offset = object.getHorizontalOffset();
-//        double left = Math.min(2.0 * offset + 1,1);
-//        double right = Math.min(-2.0 * offset +1,1);
+        // double left = Math.min(2.0 * offset + 1,1);
+        // double right = Math.min(-2.0 * offset +1,1);
         double x = (offset + 2 * (1 - distance)) / 3;
         double left = getSigmoid(x);
         double right = getSigmoid(-x);
