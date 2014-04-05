@@ -32,7 +32,7 @@ inline Scalar getMin(int color)
 extern "C" {
    jobject get_features(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type)
 {
-      Mat& mRgb = *(Mat*)addrRgba;
+    Mat& mRgb = *(Mat*)addrRgba;
      Mat hsv;
 
      cvtColor(mRgb,hsv,CV_RGB2HSV);
@@ -111,33 +111,11 @@ extern "C" {
          double deltaCircle = abs(circleArea-polyArea);
          double deltaRect = abs(rectArea-polyArea);
 
-
-         // // vector<Point> circle(contours_poly.size());
-         // for(int j = 0; j < circle.size(); j++){
-         //    double angle = PI/ circle.size()*j;
-         //    circle[j] = Point(center[i].x+radius[i]*cos(angle), center[i].y + radius[i]*sin(angle));
-         // }
-         
-         // rect[0] = Point(boundRect[i].x, boundRect[i].y);
-         // rect[1] = Point(boundRect[i].x + boundRect[i].width, boundRect[i].y);
-         // rect[2] = Point(boundRect[i].x + boundRect[i].width, boundRect[i].y+  boundRect[i].height);
-         // rect[3] = Point(boundRect[i].x, boundRect[i].y+  boundRect[i].height);
-         // //RotatedRect rect = minAreaRect(contours_poly[i]);
-         // double matchRect = matchShapes(contours_poly[i], rect, CV_CONTOURS_MATCH_I3, 0.0);
-         // double matchCircle = matchShapes(contours_poly[i], circle, CV_CONTOURS_MATCH_I1 , 0.0);
          if(deltaRect < deltaCircle){
             shapeType[i] = RECT;
          }else{
             shapeType[i] = CIRCLE;
          }    
-         // if(type == 0){
-         // }else{
-         //    if(deltaRect < deltaCircle){
-         //       shapeType[i] = RECT;
-         //    }else{
-         //       shapeType[i] = CIRCLE;
-         //    }   
-         // }
          
 
        //  LOGD(isContourConvex(contours_poly[i]) ? "Is Convex" : "NOPE");
@@ -211,6 +189,7 @@ extern "C" {
       return get_features(env,obj, addrRgba, color, type);
    }
 
+   
    JNIEXPORT jobject Java_com_eit_image_ImageProcess_FindFeatures(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type);
 
    JNIEXPORT jobject JNICALL Java_com_eit_image_ImageProcess_FindFeatures(JNIEnv* env, jobject obj, jlong addrRgba, jint color, jint type)
